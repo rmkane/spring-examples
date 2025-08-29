@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: logging-app
+
+server:
+  port: 8080
+
+# Custom logging configuration
+logging:
+  # Root logging level
+  level:
+    root: INFO
+    # Application-specific logging levels
+    com.example.spring.logging: DEBUG
+    # Custom logger categories
+    business: INFO
+    security: WARN
+    performance: DEBUG
+    # Framework logging levels
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  
+  # Pattern for console output
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  
+  # File logging configuration
+  file:
+    name: logs/logging-app.log
+    max-size: 10MB
+    max-history: 30
+  
+  # Logback configuration file (optional - for more advanced config)
+  config: classpath:logback-spring.xml
+  
+  # Console output configuration
+  console:
+    enabled: true
+  
+  # Log groups for easier management
+  group:
+    business:
+      - business
+      - com.example.spring.logging.business
+    security:
+      - security
+      - com.example.spring.logging.security
+    performance:
+      - performance
+      - com.example.spring.logging.performance
+    web:
+      - org.springframework.web
+      - org.springframework.web.servlet
+    database:
+      - org.springframework.jdbc
+      - org.hibernate.SQL
+      - org.hibernate.type.descriptor.sql.BasicBinder

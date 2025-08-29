@@ -14,5 +14,6 @@
         <module>01_basic</module>
         <module>02_web</module>
         <module>03_rest</module>
+        <module>04_logging</module>
     </modules>
 </project>

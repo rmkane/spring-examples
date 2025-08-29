@@ -14,6 +14,7 @@ MODULES := $(shell find . -maxdepth 1 -name "[0-9][0-9]_*" -type d | grep -v "00
 MODULE_DEPS_01_basic = 00_common
 MODULE_DEPS_02_web = 00_common
 MODULE_DEPS_03_rest = 00_common
+MODULE_DEPS_04_logging = 00_common
 
 # Function to get dependencies for a module
 get-deps = $(MODULE_DEPS_$(1))
@@ -71,6 +72,11 @@ run-web:
 run-rest:
 	@echo "Running REST Spring Boot example..."
 	cd 03_rest && mvn spring-boot:run
+
+# Build and run the logging example
+run-logging:
+	@echo "Running logging Spring Boot example..."
+	cd 04_logging && mvn spring-boot:run
 
 # Build specific modules in correct order
 build-common:
@@ -184,6 +190,7 @@ info:
 	@echo "  make run-basic                  - Build and run basic example (port 8080)"
 	@echo "  make run-web                    - Build and run web example (port 8080)"
 	@echo "  make run-rest                   - Build and run REST example (port 8080)"
+	@echo "  make run-logging                - Build and run logging example (port 8080)"
 	@echo "  make clean                      - Clean all modules"
 	@echo "  make kill                       - Kill running Spring Boot applications"
 	@echo "  make test                       - Run all tests"
