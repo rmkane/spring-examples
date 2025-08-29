@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Security Example - Home</title>
+    <link rel="stylesheet" th:href="@{/css/security.css}">
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Spring Security Example</h1>
+        <p>Welcome to the Spring Security demonstration! This example shows various security features including:</p>
+
+        <div class="feature">
+            <h3>🚪 Authentication & Authorization</h3>
+            <ul>
+                <li>User login/logout with Spring Security</li>
+                <li>Role-based access control (USER, MODERATOR, ADMIN)</li>
+                <li>Method-level security with annotations</li>
+                <li>Custom login page and access control</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h3>🔑 Pre-configured Users</h3>
+            <ul>
+                <li><strong>admin</strong> / admin123 (ADMIN role)</li>
+                <li><strong>moderator</strong> / mod123 (MODERATOR role)</li>
+                <li><strong>user</strong> / user123 (USER role)</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h3>🌐 Available Endpoints</h3>
+            <ul>
+                <li><strong>Public:</strong> /, /home, /api/public</li>
+                <li><strong>User:</strong> /user/profile, /api/user/info</li>
+                <li><strong>Moderator:</strong> /moderator/panel, /api/moderator/stats</li>
+                <li><strong>Admin:</strong> /admin/panel, /api/admin/users</li>
+            </ul>
+        </div>
+
+        <div class="nav">
+            <a href="/">Home</a>
+            <a href="/login">Login</a>
+            <a href="/h2-console" target="_blank">H2 Database Console</a>
+            <a href="/api/public">Public API</a>
+        </div>
+
+        <div class="login-form">
+            <h3>Quick Login</h3>
+            <form th:action="@{/login}" method="post">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" placeholder="admin, moderator, or user" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="admin123, mod123, or user123" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+        </div>
+
+        <div class="feature">
+            <h3>🧪 Testing Security</h3>
+            <p>Try accessing different endpoints with different user roles to see Spring Security in action!</p>
+            <ul>
+                <li>Login as <strong>user</strong> and try to access /admin/panel (should be denied)</li>
+                <li>Login as <strong>admin</strong> and access all areas</li>
+                <li>Test the different API endpoints with various roles</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

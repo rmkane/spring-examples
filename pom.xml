@@ -15,5 +15,6 @@
         <module>02_web</module>
         <module>03_rest</module>
         <module>04_logging</module>
+        <module>05_security</module>
     </modules>
 </project>

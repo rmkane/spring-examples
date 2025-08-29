@@ -108,6 +108,18 @@ spring-examples/
   - Custom Logback configuration
   - REST endpoints for testing logging
 
+### 05_security
+
+- **Purpose**: Comprehensive Spring Security implementation
+- **Features**:
+  - User authentication and authorization
+  - Role-based access control (USER, MODERATOR, ADMIN)
+  - Custom login forms and security configuration
+  - JPA integration with user management
+  - Thymeleaf templates with security integration
+  - H2 database for demonstration
+  - API endpoints with role-based access
+
 ## Prerequisites
 
 - **Java**: JDK 17 or higher
@@ -156,6 +168,16 @@ make run-logging
 - Access at: <http://localhost:8080>
 - Test logging: `/log-examples`, `/business-log`, `/security-log`, `/performance-log`
 
+#### Security Example
+
+```bash
+make run-security
+```
+
+- Access at: <http://localhost:8080>
+- Demo users: admin/admin123, moderator/mod123, user/user123
+- Test role-based access control and security features
+
 ### 3. Stop Applications
 
 ```bash
@@ -178,6 +200,7 @@ make kill
 - `make run-web` - Run web application
 - `make run-rest` - Run REST API
 - `make run-logging` - Run logging example
+- `make run-security` - Run security example
 - `make run-module MODULE=name` - Run specific module
 
 ### Utility Commands

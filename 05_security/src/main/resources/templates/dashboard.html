@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Spring Security Example</title>
+    <link rel="stylesheet" th:href="@{/css/security.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard-header">
+            <div class="logout">
+                <a href="/logout">Logout</a>
+            </div>
+            <h1>🎯 Dashboard</h1>
+            <p>Welcome back, <strong th:text="${username}">User</strong>!</p>
+        </div>
+
+        <div class="card user-info">
+            <h3>👤 User Information</h3>
+            <p><strong>Username:</strong> <span th:text="${username}">username</span></p>
+            <p><strong>Roles:</strong>
+                <span th:each="authority : ${authorities}"
+                      th:text="${authority.authority}"
+                      th:class="${'role-badge ' + (authority.authority == 'ROLE_ADMIN' ? 'role-admin' :
+                                                   authority.authority == 'ROLE_MODERATOR' ? 'role-moderator' : 'role-user')}">
+                    ROLE_USER
+                </span>
+            </p>
+        </div>
+
+        <div class="nav">
+            <h3>🚪 Navigation</h3>
+            <a href="/" class="user">Home</a>
+            <a href="/user/profile" class="user">User Profile</a>
+            <a href="/moderator/panel" class="moderator">Moderator Panel</a>
+            <a href="/admin/panel" class="admin">Admin Panel</a>
+        </div>
+
+        <div class="card api-section">
+            <h3>🔌 API Endpoints</h3>
+            <p>Test these endpoints to see role-based access control in action:</p>
+            <ul>
+                <li><a href="/api/public" target="_blank">/api/public</a> - Public access</li>
+                <li><a href="/api/user/info" target="_blank">/api/user/info</a> - User access required</li>
+                <li><a href="/api/moderator/stats" target="_blank">/api/moderator/stats</a> - Moderator+ access required</li>
+                <li><a href="/api/admin/users" target="_blank">/api/admin/users</a> - Admin access required</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>🧪 Testing Security</h3>
+            <p>Try these scenarios to test Spring Security:</p>
+            <ul>
+                <li>Access different role-specific pages based on your current role</li>
+                <li>Test API endpoints to see JSON responses</li>
+                <li>Try accessing admin areas with a user account (should be denied)</li>
+                <li>Check the H2 console at <a href="/h2-console" target="_blank">/h2-console</a> to see the database</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>📚 What This Demonstrates</h3>
+            <ul>
+                <li><strong>Authentication:</strong> User login with Spring Security</li>
+                <li><strong>Authorization:</strong> Role-based access control</li>
+                <li><strong>Method Security:</strong> @PreAuthorize annotations</li>
+                <li><strong>Custom Login:</strong> Custom login page and flow</li>
+                <li><strong>Database Integration:</strong> User management with JPA</li>
+                <li><strong>Password Encoding:</strong> BCrypt password hashing</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

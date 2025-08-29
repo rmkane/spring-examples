@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Access Denied - Spring Security Example</title>
+    <link rel="stylesheet" th:href="@{/css/security.css}">
+</head>
+<body>
+    <div class="access-denied-container">
+        <div class="error-icon">🚫</div>
+        <h1 class="error-title">Access Denied</h1>
+        <p class="error-message">
+            Sorry, you don't have permission to access this resource.<br>
+            This demonstrates Spring Security's authorization in action!
+        </p>
+
+        <div class="info-box">
+            <h4>🔐 What Happened?</h4>
+            <p>Spring Security detected that your current user account doesn't have the required role or permission to access this page or endpoint.</p>
+
+            <h4>🧪 How to Test:</h4>
+            <ul>
+                <li>Try logging in with different user accounts</li>
+                <li>Test accessing admin areas with a regular user account</li>
+                <li>Check the different API endpoints with various roles</li>
+            </ul>
+
+            <h4>👥 Available Demo Users:</h4>
+            <ul>
+                <li><strong>admin</strong> / admin123 - Full access to everything</li>
+                <li><strong>moderator</strong> / mod123 - Access to user and moderator areas</li>
+                <li><strong>user</strong> / user123 - Basic user access only</li>
+            </ul>
+        </div>
+
+        <div>
+            <a href="/dashboard" class="btn">Go to Dashboard</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>
