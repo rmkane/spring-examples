@@ -21,12 +21,20 @@ public class SecurityController {
     private final UserService userService;
 
     @GetMapping("/")
-    public String home() {
+    public String home(Authentication authentication) {
+        // If user is authenticated, redirect to dashboard
+        if (authentication != null && authentication.isAuthenticated()) {
+            return "redirect:/dashboard";
+        }
         return "home";
     }
 
     @GetMapping("/home")
-    public String homePage() {
+    public String homePage(Authentication authentication) {
+        // If user is authenticated, redirect to dashboard
+        if (authentication != null && authentication.isAuthenticated()) {
+            return "redirect:/dashboard";
+        }
         return "home";
     }
 
