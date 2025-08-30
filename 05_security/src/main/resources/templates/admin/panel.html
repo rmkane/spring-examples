@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Spring Security Example</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>👑 Admin Panel</h1>
+            <nav class="nav">
+                <a th:href="@{/}" class="nav-link">Home</a>
+                <a th:href="@{/dashboard}" class="nav-link">Dashboard</a>
+                <a th:href="@{/user/profile}" class="nav-link">Profile</a>
+                <a th:href="@{/moderator/panel}" class="nav-link">Moderator Panel</a>
+                <a th:href="@{/admin/panel}" class="nav-link active">Admin Panel</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h2>Administrative Dashboard</h2>
+                    <p class="user-info">Welcome, <span th:text="${username}">Administrator</span>!</p>
+                    <p class="role-info">Role: <span th:text="${authorities}">ADMIN</span></p>
+                </div>
+
+                <div class="admin-stats">
+                    <h3>📊 System Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" th:text="${users != null ? users.size() : 0}">0</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">3</div>
+                            <div class="stat-label">User Roles</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">1</div>
+                            <div class="stat-label">Active Sessions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-management">
+                    <h3>👥 User Management</h3>
+                    <div class="user-list" th:if="${users != null and !users.empty}">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Full Name</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="user : ${users}">
+                                    <td th:text="${user.id}">1</td>
+                                    <td th:text="${user.username}">username</td>
+                                    <td th:text="${user.email}">email@example.com</td>
+                                    <td th:text="${user.fullName}">Full Name</td>
+                                    <td th:text="${user.role}">USER</td>
+                                    <td>
+                                        <span class="status-active" th:if="${user.enabled}">✓ Active</span>
+                                        <span class="status-inactive" th:unless="${user.enabled}">✗ Inactive</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="no-users" th:if="${users == null or users.empty}">
+                        <p>No users found in the system.</p>
+                    </div>
+                </div>
+
+                <div class="admin-actions">
+                    <h3>🛠️ Administrative Actions</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary">Create User</button>
+                        <button class="btn btn-warning">Manage Roles</button>
+                        <button class="btn btn-danger">System Settings</button>
+                        <button class="btn btn-info">View Logs</button>
+                        <button class="btn btn-secondary">Backup Data</button>
+                    </div>
+                </div>
+
+                <div class="quick-links">
+                    <h3>🔗 Quick Links</h3>
+                    <div class="links-grid">
+                        <a th:href="@{/api/admin/users}" class="link-card">
+                            <h4>User API</h4>
+                            <p>View user data via API</p>
+                        </a>
+                        <a th:href="@{/api/moderator/stats}" class="link-card">
+                            <h4>Moderator API</h4>
+                            <p>Access moderator statistics</p>
+                        </a>
+                        <a th:href="@{/dashboard}" class="link-card">
+                            <h4>Main Dashboard</h4>
+                            <p>Return to main dashboard</p>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="system-info">
+                    <h3>ℹ️ System Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Application:</label>
+                            <span>Spring Security Example</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Version:</label>
+                            <span>1.0.0</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Database:</label>
+                            <span>H2 In-Memory</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Security:</label>
+                            <span>Spring Security 6.x</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="logout">
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

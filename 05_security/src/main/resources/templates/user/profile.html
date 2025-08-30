@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile - Spring Security Example</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>👤 User Profile</h1>
+            <nav class="nav">
+                <a th:href="@{/}" class="nav-link">Home</a>
+                <a th:href="@{/dashboard}" class="nav-link">Dashboard</a>
+                <a th:href="@{/user/profile}" class="nav-link active">Profile</a>
+                <a th:href="@{/moderator/panel}" class="nav-link" th:if="${#authorization.expression('hasRole(''MODERATOR'')')}">Moderator Panel</a>
+                <a th:href="@{/admin/panel}" class="nav-link" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">Admin Panel</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <h2>Welcome, <span th:text="${username}">User</span>!</h2>
+                    <p class="role-info">Role: <span th:text="${authorities}">USER</span></p>
+                </div>
+
+                <div class="profile-details">
+                    <div class="detail-item">
+                        <label>Username:</label>
+                        <span th:text="${username}">username</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Authorities:</label>
+                        <span th:text="${authorities}">authorities</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Session Active:</label>
+                        <span class="status-active">✓ Active</span>
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <a th:href="@{/dashboard}" class="btn btn-primary">Back to Dashboard</a>
+                    <a th:href="@{/}" class="btn btn-secondary">Go Home</a>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>About Your Account</h3>
+                <p>This is your personal profile page. Here you can view your account information and access different areas of the application based on your role.</p>
+
+                <div class="role-capabilities">
+                    <h4>Your Capabilities:</h4>
+                    <ul>
+                        <li>Access user-specific features</li>
+                        <li>View your profile information</li>
+                        <li>Navigate to dashboard and home</li>
+                        <li th:if="${#authorization.expression('hasRole(''MODERATOR'')')}">Access moderator features</li>
+                        <li th:if="${#authorization.expression('hasRole(''ADMIN'')')}">Access administrative features</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <div class="logout">
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

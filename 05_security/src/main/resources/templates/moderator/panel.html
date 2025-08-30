@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Moderator Panel - Spring Security Example</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🛡️ Moderator Panel</h1>
+            <nav class="nav">
+                <a th:href="@{/}" class="nav-link">Home</a>
+                <a th:href="@{/dashboard}" class="nav-link">Dashboard</a>
+                <a th:href="@{/user/profile}" class="nav-link">Profile</a>
+                <a th:href="@{/moderator/panel}" class="nav-link active">Moderator Panel</a>
+                <a th:href="@{/admin/panel}" class="nav-link" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">Admin Panel</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h2>Moderator Dashboard</h2>
+                    <p class="user-info">Welcome, <span th:text="${username}">Moderator</span>!</p>
+                    <p class="role-info">Role: <span th:text="${authorities}">MODERATOR</span></p>
+                </div>
+
+                <div class="moderator-stats">
+                    <h3>📊 Quick Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Pending Reviews</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Reports Today</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="moderator-actions">
+                    <h3>🛠️ Moderator Actions</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary">Review Content</button>
+                        <button class="btn btn-warning">Handle Reports</button>
+                        <button class="btn btn-info">User Management</button>
+                        <button class="btn btn-secondary">View Logs</button>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h3>📝 Recent Activity</h3>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <span class="activity-time">Just now</span>
+                            <span class="activity-text">Panel accessed</span>
+                        </div>
+                        <div class="activity-item">
+                            <span class="activity-time">No recent activity</span>
+                            <span class="activity-text">Welcome to your moderator panel!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-links">
+                    <h3>🔗 Quick Links</h3>
+                    <div class="links-grid">
+                        <a th:href="@{/api/moderator/stats}" class="link-card">
+                            <h4>API Stats</h4>
+                            <p>View moderator API statistics</p>
+                        </a>
+                        <a th:href="@{/dashboard}" class="link-card">
+                            <h4>Main Dashboard</h4>
+                            <p>Return to main dashboard</p>
+                        </a>
+                        <a th:href="@{/}" class="link-card">
+                            <h4>Home</h4>
+                            <p>Go to home page</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="logout">
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
