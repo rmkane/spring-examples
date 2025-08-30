@@ -433,6 +433,24 @@ a:hover {
     font-size: 14px;
 }
 
+/* Users table */
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+.user-table th, .user-table td {
+    border: 1px solid #bbb;
+    padding: 0.25rem 0.5rem;
+    text-align: left;
+}
+.user-table th {
+    background-color: #ddd;
+}
+.user-table tr:nth-child(even) {
+    background-color: #eee;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
