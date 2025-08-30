@@ -8,11 +8,7 @@
 <body>
     <div class="container">
         <div class="dashboard-header">
-            <div class="logout">
-                <form th:action="@{/logout}" method="post" style="display: inline;">
-                    <button type="submit" class="logout-btn">Logout</button>
-                </form>
-            </div>
+            <div th:replace="~{fragments :: logout-button}"></div>
             <h1>🎯 Dashboard</h1>
             <p>Welcome back, <strong th:text="${username}">User</strong>!</p>
         </div>

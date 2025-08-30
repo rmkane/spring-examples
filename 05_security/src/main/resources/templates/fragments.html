@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- Login Form Fragment -->
+    <div th:fragment="login-form" class="login-form">
+        <form action="/login" method="post">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+
+        <div class="auth-links">
+            <a href="/">← Back to Home</a>
+            <span class="separator">|</span>
+            <a href="/register">Create Account</a>
+        </div>
+
+        <div class="demo-users">
+            <strong>Demo Users:</strong><br>
+            • admin / admin123<br>
+            • moderator / mod123<br>
+            • user / user123
+        </div>
+    </div>
+
+    <!-- Logout Button Fragment -->
+    <div th:fragment="logout-button" class="logout">
+        <form th:action="@{/logout}" method="post" style="display: inline;">
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+    </div>
+
+    <!-- Navigation Fragment -->
+    <nav th:fragment="navigation" class="nav">
+        <a th:href="@{/}" class="nav-link">Home</a>
+        <a th:href="@{/dashboard}" class="nav-link">Dashboard</a>
+        <a th:href="@{/user/profile}" class="nav-link">Profile</a>
+        <a th:href="@{/moderator/panel}" class="nav-link" th:if="${#authorization.expression('hasRole(''MODERATOR'')')}">Moderator Panel</a>
+        <a th:href="@{/admin/panel}" class="nav-link" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">Admin Panel</a>
+    </nav>
+
+    <!-- Header Fragment -->
+    <header th:fragment="header(title, icon)" class="header">
+        <h1 th:text="${icon + ' ' + title}">Title</h1>
+        <div th:replace="~{fragments :: navigation}"></div>
+    </header>
+
+    <!-- Error Message Fragment -->
+    <div th:fragment="error-message(message)" class="error-message" th:if="${message}">
+        <span th:text="${message}">Error message</span>
+    </div>
+
+    <!-- Success Message Fragment -->
+    <div th:fragment="success-message(message)" class="success-message" th:if="${message}">
+        <span th:text="${message}">Success message</span>
+    </div>
+</body>
+</html>

@@ -12,6 +12,7 @@
             <p>Spring Security Example</p>
         </div>
 
+        <!-- Error and logout messages -->
         <div th:if="${param.error}" class="error">
             Invalid username or password.
         </div>
@@ -20,32 +21,8 @@
             You have been logged out.
         </div>
 
-        <form th:action="@{/login}" method="post">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required autofocus>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-
-            <button type="submit" class="btn">Sign In</button>
-        </form>
-
-        <div class="back-link">
-            <a href="/">← Back to Home</a>
-            <span class="separator">|</span>
-            <a href="/register">Create Account</a>
-        </div>
-
-        <div class="demo-users">
-            <strong>Demo Users:</strong><br>
-            • admin / admin123<br>
-            • moderator / mod123<br>
-            • user / user123
-        </div>
+        <!-- Include the reusable login form fragment -->
+        <div th:replace="~{fragments :: login-form}"></div>
     </div>
 </body>
 </html>
