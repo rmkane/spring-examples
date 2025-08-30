@@ -9,7 +9,9 @@
     <div class="container">
         <div class="dashboard-header">
             <div class="logout">
-                <a href="/logout">Logout</a>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="logout-btn">Logout</button>
+                </form>
             </div>
             <h1>🎯 Dashboard</h1>
             <p>Welcome back, <strong th:text="${username}">User</strong>!</p>
