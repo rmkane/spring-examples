@@ -1,9 +1,15 @@
 package com.example.spring.security.service;
 
+import com.example.spring.security.dto.DefaultUserDto;
 import com.example.spring.security.entity.Role;
 import com.example.spring.security.entity.User;
 import com.example.spring.security.repository.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,7 +28,10 @@ public class UserService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
+    @Cacheable(value = "users", key = "#username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
@@ -37,41 +46,36 @@ public class UserService implements UserDetailsService {
     }
 
     private void createDefaultUsers() {
-        // Create admin user
-        User admin = new User(
-            "admin",
-            passwordEncoder.encode("admin123"),
-            "admin@example.com",
-            "Administrator",
-            Role.ADMIN
-        );
-        userRepository.save(admin);
+        try {
+            // Load default users from JSON file
+            ClassPathResource resource = new ClassPathResource("default-users.json");
+            List<DefaultUserDto> defaultUsers = objectMapper.readValue(
+                resource.getInputStream(),
+                new TypeReference<List<DefaultUserDto>>() {}
+            );
 
-        // Create moderator user
-        User moderator = new User(
-            "moderator",
-            passwordEncoder.encode("mod123"),
-            "moderator@example.com",
-            "Content Moderator",
-            Role.MODERATOR
-        );
-        userRepository.save(moderator);
-
-        // Create regular user
-        User user = new User(
-            "user",
-            passwordEncoder.encode("user123"),
-            "user@example.com",
-            "Regular User",
-            Role.USER
-        );
-        userRepository.save(user);
+            // Convert DTOs to User entities and save them
+            for (DefaultUserDto dto : defaultUsers) {
+                User user = User.builder()
+                    .username(dto.getUsername())
+                    .password(passwordEncoder.encode(dto.getPassword()))
+                    .email(dto.getEmail())
+                    .fullName(dto.getFullName())
+                    .role(Role.valueOf(dto.getRole()))
+                    .build();
+                userRepository.save(user);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail application startup
+            System.err.println("Failed to load default users from JSON: " + e.getMessage());
+        }
     }
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+    @CacheEvict(value = "users", key = "#user.username")
     public User createUser(User user) {
         // Encode password before saving
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -84,5 +88,11 @@ public class UserService implements UserDetailsService {
 
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    @Cacheable(value = "users", key = "#username")
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElse(null);
     }
 }

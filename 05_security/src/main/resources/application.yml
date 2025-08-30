@@ -32,6 +32,13 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
 
+  # Cache Configuration
+  cache:
+    type: simple
+    cache-names: users
+    simple:
+      time-to-live: 28800000  # 8 hours in milliseconds
+
 # Security Configuration
 logging:
   level:
