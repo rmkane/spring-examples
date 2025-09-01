@@ -16,6 +16,7 @@ MODULE_DEPS_02_web = 00_common
 MODULE_DEPS_03_rest = 00_common
 MODULE_DEPS_04_logging = 00_common
 MODULE_DEPS_05_security = 00_common
+MODULE_DEPS_06_activemq = 00_common
 
 # Function to get dependencies for a module
 get-deps = $(MODULE_DEPS_$(1))
@@ -83,6 +84,11 @@ run-logging:
 run-security:
 	@echo "Running security Spring Boot example..."
 	cd 05_security && mvn spring-boot:run
+
+# Build and run the ActiveMQ example
+run-activemq:
+	@echo "Running ActiveMQ Spring Boot example..."
+	cd 06_activemq && mvn spring-boot:run
 
 # Build specific modules in correct order
 build-common:
@@ -198,6 +204,7 @@ info:
 	@echo "  make run-rest                   - Build and run REST example"
 	@echo "  make run-logging                - Build and run logging example"
 	@echo "  make run-security               - Build and run security example"
+	@echo "  make run-activemq               - Build and run ActiveMQ example"
 	@echo "  make clean                      - Clean all modules"
 	@echo "  make kill                       - Kill running Spring Boot applications"
 	@echo "  make test                       - Run all tests"
