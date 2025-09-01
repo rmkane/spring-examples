@@ -13,6 +13,9 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
   - [02\_web](#02_web)
   - [03\_rest](#03_rest)
   - [04\_logging](#04_logging)
+  - [05\_security](#05_security)
+  - [06\_activemq](#06_activemq)
+  - [07\_elasticsearch](#07_elasticsearch)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
   - [1. Build All Modules](#1-build-all-modules)
@@ -21,6 +24,9 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
     - [Web Application](#web-application)
     - [REST API](#rest-api)
     - [Logging Example](#logging-example)
+    - [Security Example](#security-example)
+    - [ActiveMQ Example](#activemq-example)
+    - [Elasticsearch Example](#elasticsearch-example)
   - [3. Stop Applications](#3-stop-applications)
 - [Makefile Commands](#makefile-commands)
   - [Build Commands](#build-commands)
@@ -58,6 +64,9 @@ spring-examples/
 ├── 02_web/              # Spring Boot web application with HTML controller
 ├── 03_rest/             # Spring Boot REST API example
 ├── 04_logging/          # Advanced logging configuration example
+├── 05_security/         # Spring Security with authentication and authorization
+├── 06_activemq/          # ActiveMQ messaging example
+├── 07_elasticsearch/    # Elasticsearch integration example
 ├── pom.xml              # Root aggregator POM
 ├── Makefile             # Build automation and project management
 └── README.md            # This file
@@ -120,6 +129,26 @@ spring-examples/
   - H2 database for demonstration
   - API endpoints with role-based access
 
+### 06_activemq
+
+- **Purpose**: ActiveMQ messaging integration
+- **Features**:
+  - Spring Boot ActiveMQ starter
+  - Message producer and consumer examples
+  - Queue and topic messaging
+  - REST endpoints for sending messages
+  - Embedded ActiveMQ broker
+
+### 07_elasticsearch
+
+- **Purpose**: Elasticsearch integration and search functionality
+- **Features**:
+  - Spring Boot Data Elasticsearch
+  - Document indexing and searching
+  - REST API for search operations
+  - Custom search queries and filters
+  - Elasticsearch client configuration
+
 ## Prerequisites
 
 - **Java**: JDK 17 or higher
@@ -178,6 +207,26 @@ make run-security
 - Demo users: admin/admin123, moderator/mod123, user/user123
 - Test role-based access control and security features
 
+#### ActiveMQ Example
+
+```bash
+make run-activemq
+```
+
+- Access at: <http://localhost:8080>
+- ActiveMQ console: <http://localhost:8161/admin> (admin/admin)
+- Test messaging endpoints
+
+#### Elasticsearch Example
+
+```bash
+make run-elasticsearch
+```
+
+- Access at: <http://localhost:8080>
+- Elasticsearch: <http://localhost:9200>
+- Test search functionality
+
 ### 3. Stop Applications
 
 ```bash
@@ -201,6 +250,8 @@ make kill
 - `make run-rest` - Run REST API
 - `make run-logging` - Run logging example
 - `make run-security` - Run security example
+- `make run-activemq` - Run ActiveMQ example
+- `make run-elasticsearch` - Run Elasticsearch example
 - `make run-module MODULE=name` - Run specific module
 
 ### Utility Commands
