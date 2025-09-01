@@ -17,5 +17,6 @@
         <module>04_logging</module>
         <module>05_security</module>
         <module>06_activemq</module>
+        <module>07_elasticsearch</module>
     </modules>
 </project>

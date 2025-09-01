@@ -1,0 +1,24 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: elasticsearch-example
+
+  elasticsearch:
+    uris: http://localhost:9200
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
+      indent-output: true
+    deserialization:
+      fail-on-unknown-properties: false
+      fail-on-null-for-primitives: false
+    default-property-inclusion: non_null
+
+logging:
+  level:
+    org.springframework.data.elasticsearch: DEBUG
+    org.elasticsearch: DEBUG
