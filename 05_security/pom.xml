@@ -7,6 +7,7 @@
     <groupId>org.example.spring</groupId>
     <artifactId>security</artifactId>
     <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <parent>
         <groupId>org.example.spring</groupId>
@@ -91,6 +92,16 @@
 
     <build>
         <plugins>
+            <!-- ======================================== -->
+            <!-- SPRING BOOT PLUGIN -->
+            <!-- ======================================== -->
+
+            <!-- Spring Boot Maven Plugin -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
             <!-- ======================================== -->
             <!-- COMPILER CONFIGURATION -->
             <!-- ======================================== -->
