@@ -39,4 +39,10 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
         return objectMapper;
     }
+
+    @Bean
+    @Primary
+    public co.elastic.clients.json.JsonpMapper jsonpMapper() {
+        return new co.elastic.clients.json.jackson.JacksonJsonpMapper(objectMapper());
+    }
 }

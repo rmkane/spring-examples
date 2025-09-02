@@ -120,9 +120,10 @@ public class ProductService {
             if (hasConditions) queryBuilder.append(", ");
             queryBuilder.append(String.format("""
                 {
-                  "wildcard": {
+                  "match": {
                     "name": {
-                      "value": "*%s*"
+                      "query": "%s",
+                      "operator": "or"
                     }
                   }
                 }
@@ -142,6 +143,7 @@ public class ProductService {
             hasConditions = true;
         }
 
+        // Guard clause: if both min and max price are provided
         if (minPrice != null && maxPrice != null) {
             if (hasConditions) queryBuilder.append(", ");
             queryBuilder.append(String.format("""
@@ -155,7 +157,10 @@ public class ProductService {
                 }
                 """, minPrice, maxPrice));
             hasConditions = true;
-        } else if (minPrice != null) {
+        }
+
+        // Guard clause: if only min price is provided
+        if (minPrice != null && maxPrice == null) {
             if (hasConditions) queryBuilder.append(", ");
             queryBuilder.append(String.format("""
                 {
@@ -167,7 +172,10 @@ public class ProductService {
                 }
                 """, minPrice));
             hasConditions = true;
-        } else if (maxPrice != null) {
+        }
+
+        // Guard clause: if only max price is provided
+        if (maxPrice != null && minPrice == null) {
             if (hasConditions) queryBuilder.append(", ");
             queryBuilder.append(String.format("""
                 {

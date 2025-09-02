@@ -32,8 +32,13 @@ public class ProductController {
     public ResponseEntity<Product> getProduct(@PathVariable String id) {
         log.info("Getting product with id: {}", id);
         Optional<Product> product = productService.findById(id);
-        return product.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+
+        // Guard clause: if product not found, return 404
+        if (product.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(product.get());
     }
 
     @GetMapping
@@ -47,23 +52,31 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(@PathVariable String id, @RequestBody Product product) {
         log.info("Updating product with id: {}", id);
         Optional<Product> existingProduct = productService.findById(id);
-        if (existingProduct.isPresent()) {
-            product.setId(id);
-            Product updatedProduct = productService.saveProduct(product);
-            return ResponseEntity.ok(updatedProduct);
+
+        // Guard clause: if product not found, return 404
+        if (existingProduct.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+
+        // Product exists, proceed with update
+        product.setId(id);
+        Product updatedProduct = productService.saveProduct(product);
+        return ResponseEntity.ok(updatedProduct);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable String id) {
         log.info("Deleting product with id: {}", id);
         Optional<Product> product = productService.findById(id);
-        if (product.isPresent()) {
-            productService.deleteProduct(id);
-            return ResponseEntity.noContent().build();
+
+        // Guard clause: if product not found, return 404
+        if (product.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+
+        // Product exists, proceed with deletion
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/category/{category}")

@@ -11,8 +11,11 @@ This example demonstrates how to integrate Spring Boot with Elasticsearch for do
   - Price range queries
   - Stock quantity filtering
   - Advanced search with multiple criteria
-- **Elasticsearch Integration**: Using Spring Data Elasticsearch
+- **Elasticsearch Integration**:
+  - Spring Data Elasticsearch (high-level abstraction)
+  - Direct Elasticsearch Client (low-level operations)
 - **REST API**: Complete RESTful endpoints for all operations
+- **Dual Approach**: Demonstrates both Spring Data and direct client usage
 
 ## Prerequisites
 
@@ -159,6 +162,94 @@ curl -X GET "http://localhost:8080/api/products/search/full-text?query=iPhone ca
 curl -X GET "http://localhost:8080/api/products/search/advanced?name=iPhone&category=Electronics&minPrice=500&maxPrice=1200"
 ```
 
+### Direct Elasticsearch Client Endpoints
+
+The application also provides endpoints that use the direct Elasticsearch client for demonstration:
+
+#### Get Product by ID (Direct Client)
+
+```bash
+curl -X GET http://localhost:8080/api/direct/products/{id}
+```
+
+#### Index Product (Direct Client)
+
+```bash
+curl -X POST http://localhost:8080/api/direct/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Direct Client Product",
+    "description": "Product indexed using direct client",
+    "category": "Electronics",
+    "price": 299.99,
+    "stockQuantity": 10,
+    "brand": "DirectBrand"
+  }'
+```
+
+#### Search Products (Direct Client)
+
+```bash
+curl -X GET "http://localhost:8080/api/direct/products/search?query=iPhone"
+```
+
+#### Search by Category (Direct Client)
+
+```bash
+curl -X GET "http://localhost:8080/api/direct/products/search/category?category=Electronics"
+```
+
+#### Get Category Aggregation (Direct Client)
+
+```bash
+curl -X GET http://localhost:8080/api/direct/products/aggregations/categories
+```
+
+#### Bulk Index Products (Direct Client)
+
+```bash
+curl -X POST http://localhost:8080/api/direct/products/bulk \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "id": "bulk-1",
+      "name": "Bulk Product 1",
+      "description": "First bulk product",
+      "category": "Electronics",
+      "price": 199.99,
+      "stockQuantity": 20,
+      "brand": "BulkBrand"
+    },
+    {
+      "id": "bulk-2",
+      "name": "Bulk Product 2",
+      "description": "Second bulk product",
+      "category": "Books",
+      "price": 29.99,
+      "stockQuantity": 100,
+      "brand": "BulkBrand"
+    }
+  ]'
+```
+
+#### Update Product Price (Direct Client)
+
+```bash
+curl -X PUT "http://localhost:8080/api/direct/products/{id}/price?newPrice=399.99"
+```
+
+#### Check Index Exists (Direct Client)
+
+```bash
+curl -X GET http://localhost:8080/api/direct/index/exists
+```
+
+#### Create Index (Direct Client)
+
+```bash
+curl -X POST http://localhost:8080/api/direct/index
+```
+
 ## Sample Data
 
 Here are some sample products you can create for testing:
@@ -215,8 +306,12 @@ Here are some sample products you can create for testing:
 
 - **Model Layer**: `Product` entity with Elasticsearch annotations
 - **Repository Layer**: `ProductRepository` extending `ElasticsearchRepository`
-- **Service Layer**: `ProductService` with business logic and search operations
-- **Controller Layer**: `ProductController` exposing REST endpoints
+- **Service Layer**:
+  - `ProductService` with Spring Data Elasticsearch operations
+  - `DirectElasticsearchService` with raw Elasticsearch client operations
+- **Controller Layer**:
+  - `ProductController` exposing Spring Data endpoints
+  - `DirectElasticsearchController` exposing direct client endpoints
 - **Configuration**: `ElasticsearchConfig` for client setup and Jackson configuration
 
 ## Key Features Explained
@@ -232,9 +327,15 @@ The `Product` class uses Elasticsearch annotations to define field types:
 
 ### Search Types
 
-1. **Repository Methods**: Simple queries using method names
-2. **Full-Text Search**: Multi-field search with field boosting
-3. **Advanced Search**: Complex boolean queries with multiple criteria
+1. **Repository Methods**: Simple queries using method names (Spring Data)
+2. **Full-Text Search**: Multi-field search with field boosting (both approaches)
+3. **Advanced Search**: Complex boolean queries with multiple criteria (both approaches)
+4. **Direct Client Operations**: Raw Elasticsearch API usage for:
+   - Document CRUD operations
+   - Custom query building
+   - Aggregations
+   - Bulk operations
+   - Index management
 
 ### Field Boosting
 
