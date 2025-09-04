@@ -9,34 +9,33 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.example.spring.websocket.model.FizzBuzzMessage;
 import org.example.spring.websocket.model.MessageType;
 import org.example.spring.websocket.utils.TimeUtils;
 
+@Slf4j
 @Controller
+@RequiredArgsConstructor
 public class FizzBuzzWebSocket {
     private static final AtomicInteger counter = new AtomicInteger(1);
 
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public FizzBuzzWebSocket(ObjectMapper objectMapper, SimpMessagingTemplate messagingTemplate) {
-        this.objectMapper = objectMapper;
-        this.messagingTemplate = messagingTemplate;
-    }
-
     @PostConstruct
     public void init() {
-        System.out.println("🚀 FizzBuzzWebSocket initialized - scheduled messages will start in 5 seconds");
+        log.info("🚀 FizzBuzzWebSocket initialized - scheduled messages will start in 5 seconds");
     }
 
     @MessageMapping("/fizzbuzz")
     @SendTo("/topic/fizzbuzz")
     public FizzBuzzMessage handleMessage(String message) {
-        System.out.println("📨 Received message: " + message);
+        log.info("📨 Received message: {}", message);
         return new FizzBuzzMessage(
-            MessageType.WELCOME.getValue(),
+            MessageType.WELCOME.getType(),
             "Echo: " + message,
             TimeUtils.getTimestamp()
         );
@@ -49,7 +48,7 @@ public class FizzBuzzWebSocket {
         String message = generateFizzBuzzMessage(currentNumber);
 
         FizzBuzzMessage fizzBuzzMessage = new FizzBuzzMessage(
-            messageType.getValue(),
+            messageType.getType(),
             message,
             TimeUtils.getTimestamp()
         );
@@ -57,18 +56,18 @@ public class FizzBuzzWebSocket {
         try {
             String jsonMessage = objectMapper.writeValueAsString(fizzBuzzMessage);
 
-            System.out.println("=== FizzBuzz Message Generation ===");
-            System.out.println("Number: " + currentNumber);
-            System.out.println("Message Type: " + messageType.getValue());
-            System.out.println("Message: " + message);
-            System.out.println("JSON: " + jsonMessage);
+            log.debug("=== FizzBuzz Message Generation ===");
+            log.debug("Number: {}", currentNumber);
+            log.debug("Message Type: {}", messageType.getType());
+            log.debug("Message: {}", message);
+            log.debug("JSON: {}", jsonMessage);
 
             // Broadcast to all subscribers using Spring's messaging template
-            System.out.println("📤 Attempting to send message to /topic/fizzbuzz...");
+            log.debug("📤 Attempting to send message to /topic/fizzbuzz...");
             messagingTemplate.convertAndSend("/topic/fizzbuzz", fizzBuzzMessage);
-            System.out.println("📤 Message broadcasted to all subscribers");
+            log.debug("📤 Message broadcasted to all subscribers");
 
-            System.out.println("=====================================");
+            log.debug("=====================================");
         } catch (Exception e) {
             // Log error but don't stop the scheduled task
             String errorMessage = e.getMessage();
@@ -78,11 +77,10 @@ public class FizzBuzzWebSocket {
                 errorMessage.contains("Failed to send WebSocket message")
             )) {
                 // These are expected errors when clients disconnect - just log briefly
-                System.out.println("ℹ️ Client disconnected, skipping message broadcast");
+                log.info("ℹ️ Client disconnected, skipping message broadcast");
             } else {
                 // For unexpected errors, log the full details
-                System.err.println("❌ Error sending FizzBuzz message: " + errorMessage);
-                e.printStackTrace();
+                log.error("❌ Error sending FizzBuzz message: {}", errorMessage, e);
             }
         }
     }

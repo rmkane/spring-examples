@@ -1,10 +1,10 @@
 package org.example.spring.websocket.api;
 
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 import org.example.spring.websocket.model.MessageType;
 import org.example.spring.websocket.utils.TimeUtils;

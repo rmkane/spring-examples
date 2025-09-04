@@ -5,10 +5,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Enum representing the different types of FizzBuzz messages.
  * This centralizes all message type definitions to avoid magic strings.
  */
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum MessageType {
     FIZZ("fizz", "Numbers divisible by 3"),
     BUZZ("buzz", "Numbers divisible by 5"),
@@ -16,25 +22,12 @@ public enum MessageType {
     NUMBER("number", "All other numbers"),
     WELCOME("welcome", "Welcome messages");
 
-    private final String value;
+    private final String type;
     private final String description;
-
-    private MessageType(String value, String description) {
-        this.value = value;
-        this.description = description;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public String getDescription() {
-        return description;
-    }
 
     @Override
     public String toString() {
-        return value;
+        return type;
     }
 
     /**
@@ -43,7 +36,7 @@ public enum MessageType {
      */
     public static List<String> getAllValues() {
         return Stream.of(values())
-            .map(MessageType::getValue)
+            .map(MessageType::getType)
             .toList();
     }
 
@@ -53,6 +46,6 @@ public enum MessageType {
      */
     public static Map<String, String> getAllWithDescriptions() {
         return Stream.of(values())
-            .collect(Collectors.toMap(MessageType::getValue, MessageType::getDescription));
+            .collect(Collectors.toMap(MessageType::getType, MessageType::getDescription));
     }
 }
