@@ -16,6 +16,7 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
   - [05\_security](#05_security)
   - [06\_activemq](#06_activemq)
   - [07\_elasticsearch](#07_elasticsearch)
+  - [08\_websocket](#08_websocket)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
   - [1. Build All Modules](#1-build-all-modules)
@@ -27,6 +28,7 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
     - [Security Example](#security-example)
     - [ActiveMQ Example](#activemq-example)
     - [Elasticsearch Example](#elasticsearch-example)
+    - [WebSocket Example](#websocket-example)
   - [3. Stop Applications](#3-stop-applications)
 - [Makefile Commands](#makefile-commands)
   - [Build Commands](#build-commands)
@@ -67,6 +69,7 @@ spring-examples/
 ├── 05_security/         # Spring Security with authentication and authorization
 ├── 06_activemq/          # ActiveMQ messaging example
 ├── 07_elasticsearch/    # Elasticsearch integration example
+├── 08_websocket/        # WebSocket real-time communication example
 ├── pom.xml              # Root aggregator POM
 ├── Makefile             # Build automation and project management
 └── README.md            # This file
@@ -149,6 +152,18 @@ spring-examples/
   - Custom search queries and filters
   - Elasticsearch client configuration
 
+### 08_websocket
+
+- **Purpose**: Real-time WebSocket communication with FizzBuzz algorithm
+- **Features**:
+  - Spring Boot WebSocket support
+  - Real-time bidirectional communication
+  - FizzBuzz message generation every 5 seconds
+  - Topic-based messaging (fizz, buzz, fizzbuzz, number)
+  - Modern responsive UI with Tailwind CSS
+  - Live statistics and message counters
+  - Interactive connection management
+
 ## Prerequisites
 
 - **Java**: JDK 17 or higher
@@ -227,6 +242,16 @@ make run-elasticsearch
 - Elasticsearch: <http://localhost:9200>
 - Test search functionality
 
+#### WebSocket Example
+
+```bash
+make run-websocket
+```
+
+- Access at: <http://localhost:8088>
+- WebSocket endpoint: `ws://localhost:8088/websocket/fizzbuzz`
+- Connect and watch real-time FizzBuzz messages every 5 seconds
+
 ### 3. Stop Applications
 
 ```bash
@@ -252,6 +277,7 @@ make kill
 - `make run-security` - Run security example
 - `make run-activemq` - Run ActiveMQ example
 - `make run-elasticsearch` - Run Elasticsearch example
+- `make run-websocket` - Run WebSocket example
 - `make run-module MODULE=name` - Run specific module
 
 ### Utility Commands

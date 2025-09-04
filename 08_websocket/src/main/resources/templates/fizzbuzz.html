@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">FizzBuzz WebSocket Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .message-fizz { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .message-buzz { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .message-fizzbuzz { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .message-number { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .message-welcome { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+        .message-card {
+            animation: slideIn 0.5s ease-out;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-connected {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .status-disconnected {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-bolt text-yellow-500 mr-3"></i>
+                FizzBuzz WebSocket Demo
+            </h1>
+            <p class="text-gray-600 text-lg" th:text="${description}">
+                Real-time FizzBuzz messages via WebSocket
+            </p>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="max-w-md mx-auto mb-8">
+            <div id="connectionStatus" class="status-disconnected rounded-lg p-4 text-white text-center font-semibold">
+                <i class="fas fa-wifi mr-2"></i>
+                <span id="statusText">Disconnected</span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="max-w-md mx-auto mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex space-x-4">
+                    <button id="connectBtn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                        <i class="fas fa-plug mr-2"></i>Connect
+                    </button>
+                    <button id="disconnectBtn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200" disabled>
+                        <i class="fas fa-times mr-2"></i>Disconnect
+                    </button>
+                </div>
+                <div class="mt-4">
+                    <button id="clearBtn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                        <i class="fas fa-trash mr-2"></i>Clear Messages
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="max-w-md mx-auto mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <form id="messageForm" class="flex space-x-2">
+                    <div class="flex-1 relative">
+                        <input type="text" id="messageInput" placeholder="Type a message..." required maxlength="100"
+                               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="absolute right-2 top-2 text-xs text-gray-400">
+                            <span id="charCount">0</span>/100
+                        </div>
+                    </div>
+                    <button type="submit" id="sendBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+         <!-- Statistics -->
+         <div class="max-w-4xl mx-auto mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-500" id="fizzCount">0</div>
+                    <div class="text-gray-600">Fizz</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-pink-500" id="buzzCount">0</div>
+                    <div class="text-gray-600">Buzz</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-cyan-500" id="fizzbuzzCount">0</div>
+                    <div class="text-gray-600">FizzBuzz</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-green-500" id="numberCount">0</div>
+                    <div class="text-gray-600">Numbers</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-yellow-500" id="welcomeCount">0</div>
+                    <div class="text-gray-600">Welcome</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-comments text-blue-500 mr-2"></i>
+                    Real-time Messages
+                </h2>
+                <div id="messagesContainer" class="space-y-4 max-h-96 overflow-y-auto">
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-info-circle text-2xl mb-2"></i>
+                        <p>Connect to start receiving FizzBuzz messages!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css">
+    <script>
+        // Toast helper function
+        const showToast = (message, type = 'info') => {
+            const colors = {
+                error: '#ef4444',
+                warning: '#f59e0b',
+                success: '#10b981',
+                info: '#3b82f6'
+            };
+
+            Toastify({
+                text: message,
+                duration: 5000,
+                gravity: "top",
+                position: "center",
+                backgroundColor: colors[type],
+                stopOnFocus: true,
+                close: true
+            }).showToast();
+        };
+
+        // Helper functions
+        const preventDefault = (fn) => (e) => {
+            e.preventDefault();
+            return fn(e);
+        };
+
+        const throttle = (fn, delay) => {
+            let lastCall = 0;
+            return (...args) => {
+                const now = Date.now();
+                if (now - lastCall >= delay) {
+                    lastCall = now;
+                    fn(...args);
+                } else {
+                    showToast('⏱️ Please wait before sending another message', 'warning');
+                }
+            };
+        };
+
+        const debounce = (fn, delay) => {
+            let timeoutId;
+            return (...args) => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => fn(...args), delay);
+            };
+        };
+
+                const withValidation = (fn) => (e) => {
+            const message = e.target.messageInput.value.trim();
+
+            if (!message) {
+                showToast('⚠️ Please enter a message', 'error');
+                return;
+            }
+
+            if (message.length > 100) {
+                showToast('⚠️ Message too long (max 100 characters)', 'error');
+                return;
+            }
+
+            fn(e);
+        };
+
+        let stompClient = null;
+        let messageCounts = {
+            fizz: 0,
+            buzz: 0,
+            fizzbuzz: 0,
+            number: 0,
+            welcome: 0
+        };
+
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const messageInput = document.getElementById('messageInput');
+        const messageForm = document.getElementById('messageForm');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statusText = document.getElementById('statusText');
+        const charCount = document.getElementById('charCount');
+
+        function updateConnectionStatus(connected) {
+            if (connected) {
+                connectionStatus.className = 'status-connected rounded-lg p-4 text-white text-center font-semibold';
+                statusText.textContent = 'Connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                sendBtn.disabled = false;
+            } else {
+                connectionStatus.className = 'status-disconnected rounded-lg p-4 text-white text-center font-semibold';
+                statusText.textContent = 'Disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                sendBtn.disabled = true;
+            }
+        }
+
+        function addMessage(message) {
+            console.log('📨 Received message:', message);
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-card p-4 text-white ${getMessageClass(message.topic)}`;
+
+            const timestamp = document.createElement('div');
+            timestamp.className = 'text-xs opacity-75 mb-1';
+            timestamp.textContent = message.timestamp;
+
+            const content = document.createElement('div');
+            content.className = 'font-semibold';
+            content.textContent = message.message;
+
+            messageDiv.appendChild(timestamp);
+            messageDiv.appendChild(content);
+
+            // Insert new messages at the top
+            messagesContainer.insertBefore(messageDiv, messagesContainer.firstChild);
+
+            // Auto-scroll to top to show new messages
+            messagesContainer.scrollTop = 0;
+
+            // Update counters - count all valid topics
+            if (message.topic && ['fizz', 'buzz', 'fizzbuzz', 'number', 'welcome'].includes(message.topic)) {
+                messageCounts[message.topic]++;
+                updateCounters();
+                console.log('📊 Updated counter for topic:', message.topic, 'New count:', messageCounts[message.topic]);
+            } else {
+                console.log('⚠️ Topic not counted:', message.topic);
+            }
+        }
+
+        function getMessageClass(topic) {
+            switch (topic) {
+                case 'fizz': return 'message-fizz';
+                case 'buzz': return 'message-buzz';
+                case 'fizzbuzz': return 'message-fizzbuzz';
+                case 'number': return 'message-number';
+                case 'welcome': return 'message-welcome';
+                default: return 'message-number';
+            }
+        }
+
+        function updateCounters() {
+            document.getElementById('fizzCount').textContent = messageCounts.fizz;
+            document.getElementById('buzzCount').textContent = messageCounts.buzz;
+            document.getElementById('fizzbuzzCount').textContent = messageCounts.fizzbuzz;
+            document.getElementById('numberCount').textContent = messageCounts.number;
+            document.getElementById('welcomeCount').textContent = messageCounts.welcome;
+        }
+
+        function connect() {
+            const socket = new SockJS('/websocket');
+            stompClient = Stomp.over(socket);
+
+            console.log('🔌 Attempting to connect to STOMP WebSocket...');
+
+                        stompClient.connect({}, function(frame) {
+                console.log('✅ STOMP WebSocket connected successfully');
+                console.log('🔗 Connection frame:', frame);
+                updateConnectionStatus(true);
+                showToast('✅ Connected to WebSocket!', 'success');
+
+                // Subscribe to FizzBuzz messages
+                stompClient.subscribe('/topic/fizzbuzz', function(message) {
+                    console.log('📨 Message received:', message.body);
+                    console.log('📨 Message headers:', message.headers);
+                    try {
+                        const data = JSON.parse(message.body);
+                        addMessage(data);
+                    } catch (e) {
+                        console.error('❌ Error parsing message:', e);
+                        console.error('❌ Raw message body:', message.body);
+                    }
+                });
+
+                console.log('✅ Subscribed to /topic/fizzbuzz');
+
+                // Send welcome message
+                stompClient.send("/app/fizzbuzz", {}, "Hello from client!");
+
+            }, function(error) {
+                console.error('❌ STOMP connection error:', error);
+                updateConnectionStatus(false);
+                showToast('❌ Connection failed', 'error');
+            });
+
+            // Add disconnect callback
+            stompClient.onStompError = function(frame) {
+                console.error('❌ STOMP error:', frame);
+                updateConnectionStatus(false);
+            };
+        }
+
+        function disconnect() {
+            if (stompClient) {
+                console.log('🔌 Disconnecting STOMP client...');
+                stompClient.disconnect(function() {
+                    console.log('✅ STOMP client disconnected successfully');
+                    updateConnectionStatus(false);
+                    showToast('🔌 Disconnected from WebSocket', 'info');
+                });
+                stompClient = null;
+            }
+        }
+
+        function clearMessages() {
+            messagesContainer.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-info-circle text-2xl mb-2"></i>
+                    <p>Messages cleared!</p>
+                </div>
+            `;
+            messageCounts = { fizz: 0, buzz: 0, fizzbuzz: 0, number: 0, welcome: 0 };
+            updateCounters();
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message && stompClient && stompClient.connected) {
+                try {
+                    stompClient.send("/app/fizzbuzz", {}, message);
+                    messageInput.value = '';
+                    charCount.textContent = '0';
+                    showToast('📤 Message sent successfully!', 'success');
+                } catch (e) {
+                    console.error('❌ Error sending message:', e);
+                    showToast('❌ Failed to send message', 'error');
+                    updateConnectionStatus(false);
+                }
+            } else {
+                showToast('⚠️ Cannot send message - not connected', 'warning');
+            }
+        }
+
+        // Event listeners
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        clearBtn.addEventListener('click', clearMessages);
+
+        // Character counter
+        messageInput.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+
+        // Form submission handling with middleware
+        const validatedThrottledSend = withValidation(throttle(sendMessage, 1000));
+        messageForm.addEventListener('submit', preventDefault(validatedThrottledSend));
+
+        // Initialize
+        updateConnectionStatus(false);
+    </script>
+</body>
+</html>

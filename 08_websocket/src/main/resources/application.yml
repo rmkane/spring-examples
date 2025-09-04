@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: websocket-fizzbuzz
+
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    org.example.spring.websocket: DEBUG
+    org.springframework.web.socket: DEBUG
