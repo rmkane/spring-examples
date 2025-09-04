@@ -3,11 +3,15 @@ package org.example.spring.websocket.websocket;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +32,18 @@ public class FizzBuzzWebSocket {
     @PostConstruct
     public void init() {
         log.info("🚀 FizzBuzzWebSocket initialized - scheduled messages will start in 5 seconds");
+    }
+
+    @EventListener
+    public void handleWebSocketConnectListener(SessionConnectedEvent event) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        log.info("🔗 Client connected: {}", headerAccessor.getSessionId());
+    }
+
+    @EventListener
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        log.info("🔌 Client disconnected: {}", headerAccessor.getSessionId());
     }
 
     @MessageMapping("/fizzbuzz")
@@ -71,11 +87,10 @@ public class FizzBuzzWebSocket {
         } catch (Exception e) {
             // Log error but don't stop the scheduled task
             String errorMessage = e.getMessage();
-            if (errorMessage != null && (
-                errorMessage.contains("Session closed") ||
-                errorMessage.contains("Cannot send a message when session is closed") ||
-                errorMessage.contains("Failed to send WebSocket message")
-            )) {
+            String exceptionType = e.getClass().getSimpleName();
+
+            // Check for expected WebSocket disconnection errors
+            if (isExpectedDisconnectionError(e, errorMessage, exceptionType)) {
                 // These are expected errors when clients disconnect - just log briefly
                 log.info("ℹ️ Client disconnected, skipping message broadcast");
             } else {
@@ -83,6 +98,24 @@ public class FizzBuzzWebSocket {
                 log.error("❌ Error sending FizzBuzz message: {}", errorMessage, e);
             }
         }
+    }
+
+    /**
+     * Check if the exception is an expected WebSocket disconnection error.
+     * These are normal occurrences when clients disconnect.
+     */
+    private boolean isExpectedDisconnectionError(Exception e, String errorMessage, String exceptionType) {
+        // Check for common disconnection-related exceptions and messages
+        return (errorMessage != null && (
+            errorMessage.contains("Session closed") ||
+            errorMessage.contains("Cannot send a message when session is closed") ||
+            errorMessage.contains("Failed to send WebSocket message") ||
+            errorMessage.contains("WebSocket session has been closed") ||
+            errorMessage.contains("Failed to write SockJsFrame")
+        )) || (
+            exceptionType.contains("IllegalStateException") ||
+            exceptionType.contains("SockJsTransportFailureException")
+        );
     }
 
     private MessageType determineMessageType(int number) {
