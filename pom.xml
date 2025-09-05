@@ -19,5 +19,6 @@
         <module>06_activemq</module>
         <module>07_elasticsearch</module>
         <module>08_websocket</module>
+        <module>09_sse</module>
     </modules>
 </project>

@@ -19,6 +19,7 @@ MODULE_DEPS_05_security = 00_common
 MODULE_DEPS_06_activemq = 00_common
 MODULE_DEPS_07_elasticsearch = 00_common
 MODULE_DEPS_08_websocket = 00_common
+MODULE_DEPS_09_sse = 00_common
 
 # Function to get dependencies for a module
 get-deps = $(MODULE_DEPS_$(1))
@@ -101,6 +102,11 @@ run-elasticsearch:
 run-websocket:
 	@echo "Running WebSocket Spring Boot example..."
 	cd 08_websocket && mvn spring-boot:run
+
+# Build and run the SSE example
+run-sse:
+	@echo "Running SSE Spring Boot example..."
+	cd 09_sse && mvn spring-boot:run
 
 # Build specific modules in correct order
 build-common:
@@ -219,6 +225,7 @@ info:
 	@echo "  make run-activemq               - Build and run ActiveMQ example"
 	@echo "  make run-elasticsearch          - Build and run Elasticsearch example"
 	@echo "  make run-websocket              - Build and run WebSocket example"
+	@echo "  make run-sse                    - Build and run SSE example"
 	@echo "  make clean                      - Clean all modules"
 	@echo "  make kill                       - Kill running Spring Boot applications"
 	@echo "  make test                       - Run all tests"

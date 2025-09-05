@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">SSE Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css">
+    <style>
+        .event-card {
+            transition: all 0.3s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .event-system { border-left: 4px solid #6b7280; }
+        .event-weather { border-left: 4px solid #3b82f6; }
+        .event-stock { border-left: 4px solid #10b981; }
+        .event-news { border-left: 4px solid #f59e0b; }
+        .event-alert { border-left: 4px solid #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2" th:text="${title}">SSE Demo</h1>
+            <p class="text-gray-600" th:text="${description}">Real-time server-to-client communication via SSE</p>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">Connection Status</h2>
+                    <p class="text-gray-600">Server-Sent Events connection</p>
+                </div>
+                <div id="connectionStatusContainer" class="flex items-stretch gap-4">
+                    <div class="flex flex-col justify-between items-center flex-1">
+                        <div class="flex items-center justify-center flex-1">
+                        <div id="connectionStatus" class="w-4 h-4 rounded-full bg-red-500"></div>
+                        </div>
+                        <span class="text-sm text-gray-600">Status</span>
+                    </div>
+                    <div class="flex flex-col justify-between items-center flex-1">
+                        <div class="flex items-center justify-center flex-1">
+                        <div id="eventCount" class="text-2xl font-bold text-blue-600">0</div>
+                        </div>
+                        <span class="text-sm text-gray-600">Events</span>
+                    </div>
+                </div>
+                <button id="connectBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    Connect
+                </button>
+            </div>
+        </div>
+
+        <!-- Event Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-4 text-center">
+                <div class="text-2xl font-bold text-gray-600" id="systemCount">0</div>
+                <div class="text-sm text-gray-500">System</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-4 text-center">
+                <div class="text-2xl font-bold text-blue-600" id="weatherCount">0</div>
+                <div class="text-sm text-gray-500">Weather</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-4 text-center">
+                <div class="text-2xl font-bold text-green-600" id="stockCount">0</div>
+                <div class="text-sm text-gray-500">Stock</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-4 text-center">
+                <div class="text-2xl font-bold text-yellow-600" id="newsCount">0</div>
+                <div class="text-sm text-gray-500">News</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-4 text-center">
+                <div class="text-2xl font-bold text-red-600" id="alertCount">0</div>
+                <div class="text-sm text-gray-500">Alert</div>
+            </div>
+        </div>
+
+        <!-- Events Container -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Real-Time Events</h2>
+            <div id="eventsContainer" class="space-y-3 max-h-96 overflow-y-auto">
+                <div class="text-center text-gray-500 py-8">
+                    <div class="text-4xl mb-2">📡</div>
+                    <p>Connect to start receiving real-time events</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let eventSource = null;
+        let eventCount = 0;
+        let eventCounts = {
+            system: 0,
+            weather: 0,
+            stock: 0,
+            news: 0,
+            alert: 0
+        };
+
+        // Toast helper function
+        function showToast(message, type = 'info') {
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                warning: '#f59e0b',
+                info: '#3b82f6'
+            };
+
+            Toastify({
+                text: message,
+                duration: 5000,
+                gravity: "top",
+                position: "center",
+                backgroundColor: colors[type],
+                stopOnFocus: true,
+            }).showToast();
+        }
+
+        // Connect to SSE
+        function connect() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            // Disable button and show loading state
+            const connectBtn = document.getElementById('connectBtn');
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connecting...';
+            connectBtn.className = 'bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed';
+
+            eventSource = new EventSource('/api/events');
+
+            eventSource.onopen = function(event) {
+                updateConnectionStatus(true);
+                showToast('🔗 Connected to SSE stream', 'success');
+            };
+
+            // Listen for all event types dynamically
+            const eventTypes = ['system', 'weather', 'stock', 'news', 'alert'];
+            eventTypes.forEach(eventType => {
+                eventSource.addEventListener(eventType, function(event) {
+                    try {
+                        const sseEvent = JSON.parse(event.data);
+                        addEvent(sseEvent);
+                        eventCount++;
+                        updateEventCount();
+                    } catch (error) {
+                        console.error('Error parsing SSE event:', error);
+                    }
+                });
+            });
+
+            eventSource.onerror = function(event) {
+                updateConnectionStatus(false);
+                showToast('❌ SSE connection error', 'error');
+            };
+        }
+
+        // Disconnect from SSE
+        function disconnect() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                updateConnectionStatus(false);
+                showToast('🔌 Disconnected from SSE stream', 'info');
+            }
+        }
+
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            const connectBtn = document.getElementById('connectBtn');
+
+            if (connected) {
+                statusElement.className = 'w-4 h-4 rounded-full bg-green-500';
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Disconnect';
+                connectBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors';
+                connectBtn.onclick = disconnect;
+            } else {
+                statusElement.className = 'w-4 h-4 rounded-full bg-red-500';
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Connect';
+                connectBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors';
+                connectBtn.onclick = connect;
+            }
+        }
+
+        // Add event to the UI
+        function addEvent(event) {
+            const eventsContainer = document.getElementById('eventsContainer');
+
+            // Clear placeholder if it exists
+            if (eventsContainer.children.length === 1 && eventsContainer.children[0].classList.contains('text-center')) {
+                eventsContainer.innerHTML = '';
+            }
+
+            const eventElement = document.createElement('div');
+            eventElement.className = `event-card bg-gray-50 rounded-lg p-4 event-${event.type}`;
+
+            eventElement.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-sm font-medium text-gray-500">${event.type.toUpperCase()}</span>
+                            <span class="text-xs text-gray-400">#${event.id}</span>
+                        </div>
+                        <p class="text-gray-800">${event.data}</p>
+                        <p class="text-xs text-gray-500 mt-2">${event.timestamp}</p>
+                    </div>
+                </div>
+            `;
+
+            // Add to top of container
+            eventsContainer.insertBefore(eventElement, eventsContainer.firstChild);
+
+            // Keep only last 50 events
+            if (eventsContainer.children.length > 50) {
+                eventsContainer.removeChild(eventsContainer.lastChild);
+            }
+
+            // Update event count
+            if (eventCounts.hasOwnProperty(event.type)) {
+                eventCounts[event.type]++;
+                updateEventCounts();
+            }
+        }
+
+        // Update event count display
+        function updateEventCount() {
+            document.getElementById('eventCount').textContent = eventCount;
+        }
+
+        // Update event type counts
+        function updateEventCounts() {
+            document.getElementById('systemCount').textContent = eventCounts.system;
+            document.getElementById('weatherCount').textContent = eventCounts.weather;
+            document.getElementById('stockCount').textContent = eventCounts.stock;
+            document.getElementById('newsCount').textContent = eventCounts.news;
+            document.getElementById('alertCount').textContent = eventCounts.alert;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('connectBtn').onclick = connect;
+            updateConnectionStatus(false);
+        });
+    </script>
+</body>
+</html>

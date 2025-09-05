@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: sse-demo
+
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    org.example.spring.sse: DEBUG
+    org.springframework.web: INFO

@@ -17,6 +17,7 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
   - [06\_activemq](#06_activemq)
   - [07\_elasticsearch](#07_elasticsearch)
   - [08\_websocket](#08_websocket)
+  - [09\_sse](#09_sse)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
   - [1. Build All Modules](#1-build-all-modules)
@@ -29,6 +30,7 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
     - [ActiveMQ Example](#activemq-example)
     - [Elasticsearch Example](#elasticsearch-example)
     - [WebSocket Example](#websocket-example)
+    - [SSE Example](#sse-example)
   - [3. Stop Applications](#3-stop-applications)
 - [Makefile Commands](#makefile-commands)
   - [Build Commands](#build-commands)
@@ -70,6 +72,7 @@ spring-examples/
 ├── 06_activemq/          # ActiveMQ messaging example
 ├── 07_elasticsearch/    # Elasticsearch integration example
 ├── 08_websocket/        # WebSocket real-time communication example
+├── 09_sse/             # Server-Sent Events (SSE) example
 ├── pom.xml              # Root aggregator POM
 ├── Makefile             # Build automation and project management
 └── README.md            # This file
@@ -164,6 +167,19 @@ spring-examples/
   - Live statistics and message counters
   - Interactive connection management
 
+### 09_sse
+
+- **Purpose**: Server-Sent Events (SSE) real-time communication
+- **Features**:
+  - Spring Boot SSE support with SseEmitter
+  - One-way server-to-client real-time communication
+  - Multiple event types (system, weather, stock, news, alert)
+  - Scheduled event generation every 3 seconds
+  - Modern responsive UI with Tailwind CSS
+  - Live connection status and event counters
+  - Interactive connection management
+  - Graceful error handling and reconnection
+
 ## Prerequisites
 
 - **Java**: JDK 17 or higher
@@ -252,6 +268,16 @@ make run-websocket
 - WebSocket endpoint: `ws://localhost:8088/websocket/fizzbuzz`
 - Connect and watch real-time FizzBuzz messages every 5 seconds
 
+#### SSE Example
+
+```bash
+make run-sse
+```
+
+- Access at: <http://localhost:8089>
+- SSE endpoint: <http://localhost:8089/api/events>
+- Connect and watch real-time events every 3 seconds
+
 ### 3. Stop Applications
 
 ```bash
@@ -278,6 +304,7 @@ make kill
 - `make run-activemq` - Run ActiveMQ example
 - `make run-elasticsearch` - Run Elasticsearch example
 - `make run-websocket` - Run WebSocket example
+- `make run-sse` - Run SSE example
 - `make run-module MODULE=name` - Run specific module
 
 ### Utility Commands
