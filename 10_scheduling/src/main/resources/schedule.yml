@@ -1,0 +1,26 @@
+app:
+  jobs:
+    task-cron-hourly:
+      type: CRON
+      value: "0 0 * * * *"
+      endpoint: https://api.example.com/hourly-task
+      description: Run at the top of every hour
+      disabled: false
+    task-cron-quarterly:
+      type: CRON
+      value: "0 0 */3 * * *"
+      endpoint: https://api.example.com/quarterly-task
+      description: Run every 3 hours
+      disabled: false
+    task-dur-30s:
+      type: DURATION
+      value: PT30S
+      endpoint: https://api.example.com/30s-task
+      description: Run every 30 seconds
+      disabled: true
+    task-dur-1m:
+      type: DURATION
+      value: PT1M
+      endpoint: https://api.example.com/1m-task
+      description: Run every minute
+      disabled: true

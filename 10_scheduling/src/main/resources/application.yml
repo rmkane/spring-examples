@@ -1,0 +1,55 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: scheduling-example
+
+  # Thymeleaf configuration
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+
+  # Async configuration
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 25
+        thread-name-prefix: "async-task-"
+      shutdown:
+        await-termination: true
+        await-termination-period: 30s
+
+# Legacy job configuration
+app:
+  legacy:
+    jobs:
+      cron1:
+        value: "0 * * * * *"  # Every minute
+        disabled: false
+      cron5:
+        value: "0 */5 * * * *"  # Every 5 minutes
+        disabled: false
+      rate10:
+        value: "10000"  # 10 seconds
+        disabled: false
+      rate20:
+        value: "20000"  # 20 seconds
+        disabled: false
+      rate30:
+        value: "30000"  # 30 seconds
+        disabled: false
+
+# Logging configuration
+logging:
+  level:
+    org.example.spring.scheduling: INFO
+    org.springframework.scheduling: DEBUG
+    org.springframework.web: INFO
+    root: INFO
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

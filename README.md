@@ -8,16 +8,17 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
 
 - [Project Structure](#project-structure)
 - [Modules Overview](#modules-overview)
-  - [00\_common](#00_common)
-  - [01\_basic](#01_basic)
-  - [02\_web](#02_web)
-  - [03\_rest](#03_rest)
-  - [04\_logging](#04_logging)
-  - [05\_security](#05_security)
-  - [06\_activemq](#06_activemq)
-  - [07\_elasticsearch](#07_elasticsearch)
-  - [08\_websocket](#08_websocket)
-  - [09\_sse](#09_sse)
+  - [00 common](#00-common)
+  - [01 basic](#01-basic)
+  - [02 web](#02-web)
+  - [03 rest](#03-rest)
+  - [04 logging](#04-logging)
+  - [05 security](#05-security)
+  - [06 activemq](#06-activemq)
+  - [07 elasticsearch](#07-elasticsearch)
+  - [08 websocket](#08-websocket)
+  - [09 sse](#09-sse)
+  - [10 scheduling](#10-scheduling)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
   - [1. Build All Modules](#1-build-all-modules)
@@ -31,6 +32,7 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
     - [Elasticsearch Example](#elasticsearch-example)
     - [WebSocket Example](#websocket-example)
     - [SSE Example](#sse-example)
+    - [Scheduling Example](#scheduling-example)
   - [3. Stop Applications](#3-stop-applications)
 - [Makefile Commands](#makefile-commands)
   - [Build Commands](#build-commands)
@@ -73,6 +75,7 @@ spring-examples/
 ├── 07_elasticsearch/    # Elasticsearch integration example
 ├── 08_websocket/        # WebSocket real-time communication example
 ├── 09_sse/             # Server-Sent Events (SSE) example
+├── 10_scheduling/      # Scheduling with desync logic example
 ├── pom.xml              # Root aggregator POM
 ├── Makefile             # Build automation and project management
 └── README.md            # This file
@@ -80,7 +83,7 @@ spring-examples/
 
 ## Modules Overview
 
-### 00_common
+### 00 common
 
 - **Purpose**: Shared parent POM for all modules
 - **Features**:
@@ -89,7 +92,7 @@ spring-examples/
   - Common dependencies and properties
   - Centralized Maven compiler settings
 
-### 01_basic
+### 01 basic
 
 - **Purpose**: Simple Spring Boot console application
 - **Features**:
@@ -97,7 +100,7 @@ spring-examples/
   - Console output demonstration
   - JDK 17 features showcase
 
-### 02_web
+### 02 web
 
 - **Purpose**: Spring Boot web application
 - **Features**:
@@ -105,7 +108,7 @@ spring-examples/
   - HTML controller with GET endpoint
   - Simple web interface
 
-### 03_rest
+### 03 rest
 
 - **Purpose**: Spring Boot REST API
 - **Features**:
@@ -113,7 +116,7 @@ spring-examples/
   - JSON response examples
   - API status endpoint
 
-### 04_logging
+### 04 logging
 
 - **Purpose**: Advanced logging configuration
 - **Features**:
@@ -123,7 +126,7 @@ spring-examples/
   - Custom Logback configuration
   - REST endpoints for testing logging
 
-### 05_security
+### 05 security
 
 - **Purpose**: Comprehensive Spring Security implementation
 - **Features**:
@@ -135,7 +138,7 @@ spring-examples/
   - H2 database for demonstration
   - API endpoints with role-based access
 
-### 06_activemq
+### 06 activemq
 
 - **Purpose**: ActiveMQ messaging integration
 - **Features**:
@@ -145,7 +148,7 @@ spring-examples/
   - REST endpoints for sending messages
   - Embedded ActiveMQ broker
 
-### 07_elasticsearch
+### 07 elasticsearch
 
 - **Purpose**: Elasticsearch integration and search functionality
 - **Features**:
@@ -155,7 +158,7 @@ spring-examples/
   - Custom search queries and filters
   - Elasticsearch client configuration
 
-### 08_websocket
+### 08 websocket
 
 - **Purpose**: Real-time WebSocket communication with FizzBuzz algorithm
 - **Features**:
@@ -167,7 +170,7 @@ spring-examples/
   - Live statistics and message counters
   - Interactive connection management
 
-### 09_sse
+### 09 sse
 
 - **Purpose**: Server-Sent Events (SSE) real-time communication
 - **Features**:
@@ -179,6 +182,19 @@ spring-examples/
   - Live connection status and event counters
   - Interactive connection management
   - Graceful error handling and reconnection
+
+### 10 scheduling
+
+- **Purpose**: Scheduling with desynchronization patterns
+- **Features**:
+  - Fixed rate scheduling (every 5 seconds)
+  - Fixed delay scheduling (3 seconds after completion)
+  - Cron-based scheduling (every 10 seconds)
+  - Asynchronous task execution with parallel processing
+  - Conditional scheduling (business hours only)
+  - Real-time task statistics and monitoring
+  - Modern responsive UI with live task execution log
+  - Interactive controls for managing scheduled tasks
 
 ## Prerequisites
 
@@ -264,8 +280,8 @@ make run-elasticsearch
 make run-websocket
 ```
 
-- Access at: <http://localhost:8088>
-- WebSocket endpoint: `ws://localhost:8088/websocket/fizzbuzz`
+- Access at: <http://localhost:8080>
+- WebSocket endpoint: `ws://localhost:8080/websocket/fizzbuzz`
 - Connect and watch real-time FizzBuzz messages every 5 seconds
 
 #### SSE Example
@@ -274,9 +290,20 @@ make run-websocket
 make run-sse
 ```
 
-- Access at: <http://localhost:8089>
-- SSE endpoint: <http://localhost:8089/api/events>
+- Access at: <http://localhost:8080>
+- SSE endpoint: <http://localhost:8080/api/events>
 - Connect and watch real-time events every 3 seconds
+
+#### Scheduling Example
+
+```bash
+make run-scheduling
+```
+
+- Access at: <http://localhost:8080>
+- API endpoints: `/api/stats`, `/api/status`, `/api/reset`
+- Watch various scheduling patterns execute in real-time
+- Monitor task statistics and execution logs
 
 ### 3. Stop Applications
 
@@ -305,6 +332,7 @@ make kill
 - `make run-elasticsearch` - Run Elasticsearch example
 - `make run-websocket` - Run WebSocket example
 - `make run-sse` - Run SSE example
+- `make run-scheduling` - Run scheduling example
 - `make run-module MODULE=name` - Run specific module
 
 ### Utility Commands
@@ -436,7 +464,9 @@ make list-modules
 
 ## License
 
-This project is for educational and demonstration purposes.
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0). For the full license text, see the [LICENSE](LICENSE) file in this repository.
+
+This project is intended for educational and demonstration purposes, showcasing various Spring Boot features and best practices.
 
 ## Support
 

@@ -20,5 +20,6 @@
         <module>07_elasticsearch</module>
         <module>08_websocket</module>
         <module>09_sse</module>
+        <module>10_scheduling</module>
     </modules>
 </project>

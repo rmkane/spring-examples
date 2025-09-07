@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example 10: Scheduling with Desync Logic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css">
+    <style>
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-running { background-color: #10b981; }
+        .status-stopped { background-color: #ef4444; }
+        .task-log {
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+        .log-entry {
+            padding: 4px 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .log-entry:nth-child(even) {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">Example 10: Scheduling with Desync Logic</h1>
+            <p class="text-lg text-gray-600">Demonstrating various Spring Boot scheduling patterns and desynchronization techniques</p>
+        </div>
+
+        <!-- Status Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">📊 Task Statistics</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div class="bg-blue-50 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="fixedRateCount">0</div>
+                    <div class="text-sm text-blue-800">Fixed Rate Tasks</div>
+                    <div class="text-xs text-blue-600">Every 5 seconds</div>
+                </div>
+
+                <div class="bg-green-50 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-green-600" id="fixedDelayCount">0</div>
+                    <div class="text-sm text-green-800">Fixed Delay Tasks</div>
+                    <div class="text-xs text-green-600">3s delay after completion</div>
+                </div>
+
+                <div class="bg-purple-50 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="cronCount">0</div>
+                    <div class="text-sm text-purple-800">Cron Tasks</div>
+                    <div class="text-xs text-purple-600">Every 10 seconds</div>
+                </div>
+
+                <div class="bg-orange-50 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-orange-600" id="asyncCount">0</div>
+                    <div class="text-sm text-orange-800">Desync Tasks</div>
+                    <div class="text-xs text-orange-600">High-frequency desync</div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <span class="status-dot status-running" id="statusDot"></span>
+                    <span class="text-sm font-medium text-gray-700">Application Status: <span id="appStatus">RUNNING</span></span>
+                </div>
+                <div class="text-sm text-gray-500">
+                    Last Updated: <span id="lastUpdated">Never</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">🎛️ Controls</h2>
+
+            <div class="flex flex-wrap gap-4">
+                <button id="refreshStats" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    🔄 Refresh Statistics
+                </button>
+
+                <button id="resetCounters" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    🗑️ Reset Counters
+                </button>
+
+                <button id="getStatus" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    📋 Get Status
+                </button>
+
+                <button id="getInfo" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    ℹ️ Get Info
+                </button>
+            </div>
+        </div>
+
+        <!-- Task Log Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">📝 Task Execution Log</h2>
+
+            <div class="task-log bg-gray-900 text-green-400 p-4 rounded-lg" id="taskLog">
+                <div class="log-entry">🚀 Scheduling application started...</div>
+                <div class="log-entry">📊 Monitoring task execution patterns...</div>
+                <div class="log-entry">⏰ Tasks will appear here as they execute...</div>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center">
+                <button id="clearLog" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                    🗑️ Clear Log
+                </button>
+                <div class="text-sm text-gray-500">
+                    Auto-refresh: <span id="autoRefreshStatus">ON</span> |
+                    <button id="toggleAutoRefresh" class="text-blue-500 hover:text-blue-600 underline">Toggle</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">ℹ️ About Real Desync Scheduling</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">🔄 Fixed Rate with Desync</h3>
+                    <p class="text-sm text-gray-600 mb-2">Executes every 5 seconds with per-instance offset (PT5S window, PT1S jitter). Prevents thundering herd in multi-instance deployments.</p>
+
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">⏱️ Fixed Delay with Desync</h3>
+                    <p class="text-sm text-gray-600 mb-2">Waits for completion + 3 seconds with desync (PT3S window, PT500MS jitter). Ensures consistent intervals with instance-specific timing.</p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">⏰ Cron with Desync</h3>
+                    <p class="text-sm text-gray-600 mb-2">Runs every 10 seconds using cron with desync (PT10S window, PT2S jitter). Demonstrates complex timing patterns with instance separation.</p>
+
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">⚡ High-Frequency Desync</h3>
+                    <p class="text-sm text-gray-600 mb-2">Executes every 2 seconds with aggressive desync (PT2S window, PT500MS jitter). Shows desync with shorter intervals.</p>
+                </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="text-lg font-semibold text-blue-800 mb-2">🎯 How Desync Works</h3>
+                <p class="text-sm text-blue-700 mb-2">Each task uses the <code>@Desync</code> annotation with:</p>
+                <ul class="text-sm text-blue-700 ml-4 list-disc">
+                    <li><strong>Stable per-instance splay</strong> based on key + appName + host</li>
+                    <li><strong>Per-run random component</strong> to reduce collisions</li>
+                    <li><strong>Per-run jitter</strong> to prevent long-term re-alignment</li>
+                </ul>
+                <p class="text-sm text-blue-700 mt-2">This prevents multiple instances from executing the same scheduled task simultaneously.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let autoRefreshInterval;
+        let autoRefreshEnabled = true;
+        let logEntries = 0;
+
+        // Helper functions
+        function showToast(message, type = 'info') {
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6',
+                stopOnFocus: true
+            }).showToast();
+        }
+
+        function addLogEntry(message) {
+            const log = document.getElementById('taskLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+
+            // Keep only last 50 entries
+            if (log.children.length > 50) {
+                log.removeChild(log.firstChild);
+            }
+        }
+
+        function updateStatistics(stats) {
+            document.getElementById('fixedRateCount').textContent = stats.fixedRateCount || 0;
+            document.getElementById('fixedDelayCount').textContent = stats.fixedDelayCount || 0;
+            document.getElementById('cronCount').textContent = stats.cronCount || 0;
+            document.getElementById('asyncCount').textContent = stats.asyncCount || 0;
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+        }
+
+        function fetchStatistics() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    updateStatistics(data);
+                    if (autoRefreshEnabled) {
+                        addLogEntry(`📊 Statistics updated: ${data.fixedRateCount} fixed rate, ${data.fixedDelayCount} fixed delay, ${data.cronCount} cron, ${data.asyncCount} async`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching statistics:', error);
+                    showToast('Failed to fetch statistics', 'error');
+                });
+        }
+
+        function resetCounters() {
+            fetch('/api/reset', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    showToast('Counters reset successfully', 'success');
+                    addLogEntry('🔄 All task counters have been reset');
+                    fetchStatistics();
+                })
+                .catch(error => {
+                    console.error('Error resetting counters:', error);
+                    showToast('Failed to reset counters', 'error');
+                });
+        }
+
+        function getStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    showToast(`Status: ${data.status}`, 'success');
+                    addLogEntry(`📋 Application status: ${data.status}`);
+                })
+                .catch(error => {
+                    console.error('Error getting status:', error);
+                    showToast('Failed to get status', 'error');
+                });
+        }
+
+        function getInfo() {
+            fetch('/api/info')
+                .then(response => response.json())
+                .then(data => {
+                    showToast(`App: ${data.name}`, 'success');
+                    addLogEntry(`ℹ️ Application info: ${data.name} v${data.version}`);
+                })
+                .catch(error => {
+                    console.error('Error getting info:', error);
+                    showToast('Failed to get info', 'error');
+                });
+        }
+
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            document.getElementById('autoRefreshStatus').textContent = autoRefreshEnabled ? 'ON' : 'OFF';
+
+            if (autoRefreshEnabled) {
+                autoRefreshInterval = setInterval(fetchStatistics, 2000);
+                showToast('Auto-refresh enabled', 'success');
+                addLogEntry('🔄 Auto-refresh enabled');
+            } else {
+                clearInterval(autoRefreshInterval);
+                showToast('Auto-refresh disabled', 'info');
+                addLogEntry('⏸️ Auto-refresh disabled');
+            }
+        }
+
+        function clearLog() {
+            const log = document.getElementById('taskLog');
+            log.innerHTML = '<div class="log-entry">📝 Log cleared...</div>';
+            showToast('Log cleared', 'info');
+        }
+
+        // Event listeners
+        document.getElementById('refreshStats').addEventListener('click', fetchStatistics);
+        document.getElementById('resetCounters').addEventListener('click', resetCounters);
+        document.getElementById('getStatus').addEventListener('click', getStatus);
+        document.getElementById('getInfo').addEventListener('click', getInfo);
+        document.getElementById('toggleAutoRefresh').addEventListener('click', toggleAutoRefresh);
+        document.getElementById('clearLog').addEventListener('click', clearLog);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            addLogEntry('🚀 Scheduling demo initialized');
+            fetchStatistics();
+            autoRefreshInterval = setInterval(fetchStatistics, 2000);
+            showToast('Scheduling demo loaded successfully', 'success');
+        });
+    </script>
+</body>
+</html>

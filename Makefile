@@ -20,6 +20,7 @@ MODULE_DEPS_06_activemq = 00_common
 MODULE_DEPS_07_elasticsearch = 00_common
 MODULE_DEPS_08_websocket = 00_common
 MODULE_DEPS_09_sse = 00_common
+MODULE_DEPS_10_scheduling = 00_common
 
 # Function to get dependencies for a module
 get-deps = $(MODULE_DEPS_$(1))
@@ -66,47 +67,62 @@ deploy:
 # Build and run the basic example
 run-basic:
 	@echo "Running basic Spring Boot example..."
-	cd 01_basic && mvn spring-boot:run
+	cd 01_basic && make run
 
 # Build and run the web example
 run-web:
 	@echo "Running web Spring Boot example..."
-	cd 02_web && mvn spring-boot:run
+	cd 02_web && make run
 
 # Build and run the REST example
 run-rest:
 	@echo "Running REST Spring Boot example..."
-	cd 03_rest && mvn spring-boot:run
+	cd 03_rest && make run
 
 # Build and run the logging example
 run-logging:
 	@echo "Running logging Spring Boot example..."
-	cd 04_logging && mvn spring-boot:run
+	cd 04_logging && make run
 
 # Build and run the security example
 run-security:
 	@echo "Running security Spring Boot example..."
-	cd 05_security && mvn spring-boot:run
+	cd 05_security && make run
 
 # Build and run the ActiveMQ example
 run-activemq:
 	@echo "Running ActiveMQ Spring Boot example..."
-	cd 06_activemq && mvn spring-boot:run
+	cd 06_activemq && make run
 
 # Build and run the Elasticsearch example
 run-elasticsearch:
 	@echo "Running Elasticsearch Spring Boot example..."
-	cd 07_elasticsearch && mvn spring-boot:run
+	cd 07_elasticsearch && make run
 
 # Build and run the WebSocket example
 run-websocket:
 	@echo "Running WebSocket Spring Boot example..."
-	cd 08_websocket && mvn spring-boot:run
+	cd 08_websocket && make run
 
 # Build and run the SSE example
 run-sse:
 	@echo "Running SSE Spring Boot example..."
-	cd 09_sse && mvn spring-boot:run
+	cd 09_sse && make run
+
+# Build and run the scheduling example
+run-scheduling:
+	@echo "Running scheduling Spring Boot example..."
+	cd 10_scheduling && make run
+
+# Start ActiveMQ broker
+broker:
+	@echo "Starting ActiveMQ broker..."
+	cd 06_activemq && make broker
+
+# Start Elasticsearch
+elasticsearch:
+	@echo "Starting Elasticsearch..."
+	cd 07_elasticsearch && make elasticsearch
 
 # Build specific modules in correct order
 build-common:
@@ -130,12 +146,12 @@ build-module-with-deps:
 	for dep in $$deps; do \
 		if [ "$$dep" != "00_common" ]; then \
 			echo "Building dependency: $$dep"; \
-			cd $$dep && mvn clean install && cd ..; \
+			cd $$dep && make build && cd ..; \
 		fi; \
 	done
 	@# Build the target module
 	@echo "Building target module: $(MODULE)"
-	@cd $(MODULE) && mvn clean install
+	@cd $(MODULE) && make build
 
 # Scalable build target - builds all modules in dependency order
 build-all: build-common
@@ -155,7 +171,7 @@ build-module:
 		exit 1; \
 	fi
 	@echo "Building module: $(MODULE)"
-	@cd $(MODULE) && mvn clean install
+	@cd $(MODULE) && make build
 
 # Run specific module (useful for large projects)
 run-module:
@@ -165,7 +181,7 @@ run-module:
 		exit 1; \
 	fi
 	@echo "Running module: $(MODULE)"
-	@cd $(MODULE) && mvn spring-boot:run
+	@cd $(MODULE) && make run
 
 # List all available modules with dependencies
 list-modules:
@@ -198,7 +214,7 @@ build-parallel: build-common
 	@echo "Building modules in parallel (WARNING: may fail with dependencies)..."
 	@for module in $(MODULES); do \
 		echo "Building module: $$module"; \
-		cd $$module && mvn clean install & \
+		cd $$module && make build & \
 	done
 	@wait
 
@@ -217,23 +233,26 @@ info:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  make install                    - Install all modules to local repo (in order)"
-	@echo "  make run-basic                  - Build and run basic example"
-	@echo "  make run-web                    - Build and run web example"
-	@echo "  make run-rest                   - Build and run REST example"
-	@echo "  make run-logging                - Build and run logging example"
-	@echo "  make run-security               - Build and run security example"
-	@echo "  make run-activemq               - Build and run ActiveMQ example"
-	@echo "  make run-elasticsearch          - Build and run Elasticsearch example"
-	@echo "  make run-websocket              - Build and run WebSocket example"
-	@echo "  make run-sse                    - Build and run SSE example"
+	@echo "  make run-basic                  - Run basic example (delegates to 01_basic/Makefile)"
+	@echo "  make run-web                    - Run web example (delegates to 02_web/Makefile)"
+	@echo "  make run-rest                   - Run REST example (delegates to 03_rest/Makefile)"
+	@echo "  make run-logging                - Run logging example (delegates to 04_logging/Makefile)"
+	@echo "  make run-security               - Run security example (delegates to 05_security/Makefile)"
+	@echo "  make run-activemq               - Run ActiveMQ example (delegates to 06_activemq/Makefile)"
+	@echo "  make run-elasticsearch          - Run Elasticsearch example (delegates to 07_elasticsearch/Makefile)"
+	@echo "  make run-websocket              - Run WebSocket example (delegates to 08_websocket/Makefile)"
+	@echo "  make run-sse                    - Run SSE example (delegates to 09_sse/Makefile)"
+	@echo "  make run-scheduling             - Run scheduling example (delegates to 10_scheduling/Makefile)"
+	@echo "  make broker                     - Start ActiveMQ broker (delegates to 06_activemq/Makefile)"
+	@echo "  make elasticsearch              - Start Elasticsearch (delegates to 07_elasticsearch/Makefile)"
 	@echo "  make clean                      - Clean all modules"
 	@echo "  make kill                       - Kill running Spring Boot applications"
 	@echo "  make test                       - Run all tests"
 	@echo "  make deploy                     - Deploy to remote repository"
 	@echo "  make build-common               - Build common parent only"
-	@echo "  make build-module MODULE=name   - Build specific module"
+	@echo "  make build-module MODULE=name   - Build specific module (delegates to module/Makefile)"
 	@echo "  make build-module-with-deps MODULE=name - Build module with dependencies"
-	@echo "  make run-module MODULE=name     - Run specific module"
+	@echo "  make run-module MODULE=name     - Run specific module (delegates to module/Makefile)"
 	@echo "  make list-modules               - List all available modules"
 	@echo "  make show-deps                  - Show dependency tree"
 	@echo "  make build-parallel             - Build modules in parallel (risky)"
