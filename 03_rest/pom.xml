@@ -9,6 +9,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <name>Example 03: REST API Application</name>
+    <description>Spring Boot REST API application demonstrating RESTful web services</description>
+
     <parent>
         <groupId>org.example.spring</groupId>
         <artifactId>common</artifactId>

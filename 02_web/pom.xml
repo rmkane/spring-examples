@@ -9,6 +9,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <name>Example 02: Spring Boot Web Application</name>
+    <description>Spring Boot web application with embedded Tomcat server and web starter</description>
+
     <parent>
         <groupId>org.example.spring</groupId>
         <artifactId>common</artifactId>

@@ -9,6 +9,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <name>Example 08: WebSocket Application</name>
+    <description>Spring Boot application demonstrating WebSocket support for real-time bidirectional communication</description>
+
     <parent>
         <groupId>org.example.spring</groupId>
         <artifactId>common</artifactId>

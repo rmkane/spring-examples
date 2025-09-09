@@ -9,6 +9,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <name>Example 05: Spring Security Application</name>
+    <description>Spring Boot application demonstrating Spring Security with authentication, authorization, and web security</description>
+
     <parent>
         <groupId>org.example.spring</groupId>
         <artifactId>common</artifactId>

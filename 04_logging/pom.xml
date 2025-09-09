@@ -9,6 +9,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <name>Example 04: Logging Configuration</name>
+    <description>Spring Boot application demonstrating advanced logging configuration with Logback</description>
+
     <parent>
         <groupId>org.example.spring</groupId>
         <artifactId>common</artifactId>

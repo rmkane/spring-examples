@@ -9,6 +9,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>Spring Examples - Root Project</name>
+    <description>Multi-module Spring Boot examples demonstrating various Spring features and integrations</description>
+
     <modules>
         <module>00_common</module>
         <module>01_basic</module>

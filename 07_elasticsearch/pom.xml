@@ -9,6 +9,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <name>Example 07: Elasticsearch Integration</name>
+    <description>Spring Boot application demonstrating Elasticsearch integration with Spring Data Elasticsearch</description>
+
     <parent>
         <groupId>org.example.spring</groupId>
         <artifactId>common</artifactId>

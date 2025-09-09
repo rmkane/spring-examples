@@ -9,6 +9,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <name>Example 06: ActiveMQ Messaging</name>
+    <description>Spring Boot application demonstrating ActiveMQ message broker integration with JMS</description>
+
     <parent>
         <groupId>org.example.spring</groupId>
         <artifactId>common</artifactId>
