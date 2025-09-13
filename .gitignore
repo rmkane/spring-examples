@@ -1,3 +1,7 @@
+# Analyzer output directories
+output/
+scripts/output/
+
 # Maven
 target/
 pom.xml.tag
