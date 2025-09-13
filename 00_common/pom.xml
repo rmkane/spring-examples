@@ -24,7 +24,53 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <maven.compiler.release>${java.version}</maven.compiler.release>
+
+        <!-- Apache Commons extra libraries -->
+        <commons-io.version>2.20.0</commons-io.version>
+        <commons-collections4.version>4.5.0</commons-collections4.version>
+
+        <!-- Math libraries -->
+        <hipparchus.version>4.0.1</hipparchus.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Commons IO -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
+            <!-- Commons Collections -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons-collections4.version}</version>
+            </dependency>
+
+            <!-- Hipparchus Core -->
+            <dependency>
+                <groupId>org.hipparchus</groupId>
+                <artifactId>hipparchus-core</artifactId>
+                <version>${hipparchus.version}</version>
+            </dependency>
+
+            <!-- Hipparchus Geometry -->
+            <dependency>
+                <groupId>org.hipparchus</groupId>
+                <artifactId>hipparchus-geometry</artifactId>
+                <version>${hipparchus.version}</version>
+            </dependency>
+
+            <!-- Hipparchus Statistics -->
+            <dependency>
+                <groupId>org.hipparchus</groupId>
+                <artifactId>hipparchus-stat</artifactId>
+                <version>${hipparchus.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <pluginManagement>

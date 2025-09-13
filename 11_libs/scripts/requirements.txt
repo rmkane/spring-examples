@@ -1,0 +1,13 @@
+# Development dependencies for scripts
+# =============================================================================
+
+# Code formatting and linting
+black>=23.0.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.0.0
+
+# Optional: Additional development tools
+# pytest>=7.0.0          # For more comprehensive testing
+# pytest-cov>=4.0.0      # For coverage reporting
+# pre-commit>=3.0.0      # For git hooks

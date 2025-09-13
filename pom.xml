@@ -24,5 +24,6 @@
         <module>08_websocket</module>
         <module>09_sse</module>
         <module>10_scheduling</module>
+        <module>11_libs</module>
     </modules>
 </project>

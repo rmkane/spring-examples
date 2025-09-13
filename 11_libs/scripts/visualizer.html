@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maven Dependency Matrix Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .upload-area {
+            border: 3px dashed #3498db;
+            border-radius: 10px;
+            padding: 40px;
+            margin: 20px 0;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #2980b9;
+            background: #e8f4f8;
+        }
+
+        .upload-area.dragover {
+            border-color: #27ae60;
+            background: #e8f5e8;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .visualization {
+            padding: 30px;
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        select, input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .matrix-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .dependency-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .dependency-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .dependency-header {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 1.2em;
+        }
+
+        .artifact-section {
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .artifact-section:last-child {
+            border-bottom: none;
+        }
+
+        .artifact-name {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: #e9ecef;
+            color: #495057;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            margin: 5px 10px 5px 0;
+            border: 1px solid #dee2e6;
+        }
+
+        .version-badge.inherited {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .version-badge.property {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffeaa7;
+        }
+
+        .version-badge.semantic {
+            background: #cce5ff;
+            color: #004085;
+            border-color: #b3d7ff;
+        }
+
+        .projects-list {
+            margin-top: 10px;
+        }
+
+        .project-tag {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin: 3px 5px 3px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Maven Dependency Matrix Visualizer</h1>
+            <p>Upload your dependency matrix JSON to explore project dependencies interactively</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div style="font-size: 3em; margin-bottom: 20px;">📁</div>
+                <h3>Drop your JSON file here or click to browse</h3>
+                <p>Supports matrix.json files generated by the Maven POM Analyzer</p>
+                <input type="file" id="fileInput" class="file-input" accept=".json">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+            </div>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalGroups">0</div>
+                <div class="stat-label">Dependency Groups</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalArtifacts">0</div>
+                <div class="stat-label">Total Artifacts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalVersions">0</div>
+                <div class="stat-label">Unique Versions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalProjects">0</div>
+                <div class="stat-label">Projects</div>
+            </div>
+        </div>
+
+        <div class="visualization" id="visualization">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="groupFilter">Filter by Group:</label>
+                    <select id="groupFilter">
+                        <option value="">All Groups</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="artifactFilter">Filter by Artifact:</label>
+                    <select id="artifactFilter">
+                        <option value="">All Artifacts</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="versionFilter">Filter by Version:</label>
+                    <select id="versionFilter">
+                        <option value="">All Versions</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="projectFilter">Filter by Project:</label>
+                    <input type="text" id="projectFilter" placeholder="Search projects...">
+                </div>
+            </div>
+
+            <div class="matrix-container" id="matrixContainer">
+                <div class="no-data">Upload a JSON file to see the dependency matrix</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let matrixData = null;
+        let filteredData = null;
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.name.endsWith('.json')) {
+                showError('Please upload a JSON file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    loadMatrixData(data);
+                } catch (error) {
+                    showError('Invalid JSON file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadMatrixData(data) {
+            matrixData = data;
+            filteredData = data;
+
+            // Show loading
+            document.getElementById('matrixContainer').innerHTML = '<div class="loading"><div class="spinner"></div>Processing dependency matrix...</div>';
+
+            setTimeout(() => {
+                updateStats();
+                populateFilters();
+                renderMatrix();
+                document.getElementById('stats').style.display = 'grid';
+                document.getElementById('visualization').style.display = 'block';
+            }, 500);
+        }
+
+        function updateStats() {
+            const groups = Object.keys(matrixData);
+            let totalArtifacts = 0;
+            let totalVersions = 0;
+            const allProjects = new Set();
+
+            groups.forEach(group => {
+                const artifacts = Object.keys(matrixData[group]);
+                totalArtifacts += artifacts.length;
+
+                artifacts.forEach(artifact => {
+                    const versions = Object.keys(matrixData[group][artifact]);
+                    totalVersions += versions.length;
+
+                    versions.forEach(version => {
+                        matrixData[group][artifact][version].forEach(project => {
+                            allProjects.add(project);
+                        });
+                    });
+                });
+            });
+
+            document.getElementById('totalGroups').textContent = groups.length;
+            document.getElementById('totalArtifacts').textContent = totalArtifacts;
+            document.getElementById('totalVersions').textContent = totalVersions;
+            document.getElementById('totalProjects').textContent = allProjects.size;
+        }
+
+        function populateFilters() {
+            const groups = Object.keys(matrixData);
+            const groupFilter = document.getElementById('groupFilter');
+            const artifactFilter = document.getElementById('artifactFilter');
+            const versionFilter = document.getElementById('versionFilter');
+
+            // Populate group filter
+            groupFilter.innerHTML = '<option value="">All Groups</option>';
+            groups.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group;
+                option.textContent = group;
+                groupFilter.appendChild(option);
+            });
+
+            // Populate artifact filter
+            populateArtifactFilter();
+            populateVersionFilter();
+
+            // Add event listeners
+            groupFilter.addEventListener('change', () => {
+                populateArtifactFilter();
+                populateVersionFilter();
+                applyFilters();
+            });
+
+            artifactFilter.addEventListener('change', () => {
+                populateVersionFilter();
+                applyFilters();
+            });
+
+            versionFilter.addEventListener('change', applyFilters);
+            document.getElementById('projectFilter').addEventListener('input', applyFilters);
+        }
+
+        function populateArtifactFilter() {
+            const groupFilter = document.getElementById('groupFilter').value;
+            const artifactFilter = document.getElementById('artifactFilter');
+
+            artifactFilter.innerHTML = '<option value="">All Artifacts</option>';
+
+            if (groupFilter) {
+                const artifacts = Object.keys(matrixData[groupFilter] || {});
+                artifacts.forEach(artifact => {
+                    const option = document.createElement('option');
+                    option.value = artifact;
+                    option.textContent = artifact;
+                    artifactFilter.appendChild(option);
+                });
+            } else {
+                const allArtifacts = new Set();
+                Object.values(matrixData).forEach(group => {
+                    Object.keys(group).forEach(artifact => allArtifacts.add(artifact));
+                });
+                allArtifacts.forEach(artifact => {
+                    const option = document.createElement('option');
+                    option.value = artifact;
+                    option.textContent = artifact;
+                    artifactFilter.appendChild(option);
+                });
+            }
+        }
+
+        function populateVersionFilter() {
+            const groupFilter = document.getElementById('groupFilter').value;
+            const artifactFilter = document.getElementById('artifactFilter').value;
+            const versionFilter = document.getElementById('versionFilter');
+
+            versionFilter.innerHTML = '<option value="">All Versions</option>';
+
+            const allVersions = new Set();
+
+            if (groupFilter && artifactFilter) {
+                const versions = Object.keys(matrixData[groupFilter]?.[artifactFilter] || {});
+                versions.forEach(version => allVersions.add(version));
+            } else if (groupFilter) {
+                Object.values(matrixData[groupFilter] || {}).forEach(artifact => {
+                    Object.keys(artifact).forEach(version => allVersions.add(version));
+                });
+            } else {
+                Object.values(matrixData).forEach(group => {
+                    Object.values(group).forEach(artifact => {
+                        Object.keys(artifact).forEach(version => allVersions.add(version));
+                    });
+                });
+            }
+
+            allVersions.forEach(version => {
+                const option = document.createElement('option');
+                option.value = version;
+                option.textContent = version;
+                versionFilter.appendChild(option);
+            });
+        }
+
+        function applyFilters() {
+            const groupFilter = document.getElementById('groupFilter').value;
+            const artifactFilter = document.getElementById('artifactFilter').value;
+            const versionFilter = document.getElementById('versionFilter').value;
+            const projectFilter = document.getElementById('projectFilter').value.toLowerCase();
+
+            filteredData = {};
+
+            Object.keys(matrixData).forEach(group => {
+                if (groupFilter && group !== groupFilter) return;
+
+                const groupData = {};
+                Object.keys(matrixData[group]).forEach(artifact => {
+                    if (artifactFilter && artifact !== artifactFilter) return;
+
+                    const artifactData = {};
+                    Object.keys(matrixData[group][artifact]).forEach(version => {
+                        if (versionFilter && version !== versionFilter) return;
+
+                        const projects = matrixData[group][artifact][version];
+                        const filteredProjects = projects.filter(project =>
+                            !projectFilter || project.toLowerCase().includes(projectFilter)
+                        );
+
+                        if (filteredProjects.length > 0) {
+                            artifactData[version] = filteredProjects;
+                        }
+                    });
+
+                    if (Object.keys(artifactData).length > 0) {
+                        groupData[artifact] = artifactData;
+                    }
+                });
+
+                if (Object.keys(groupData).length > 0) {
+                    filteredData[group] = groupData;
+                }
+            });
+
+            renderMatrix();
+        }
+
+        function renderMatrix() {
+            const container = document.getElementById('matrixContainer');
+
+            if (Object.keys(filteredData).length === 0) {
+                container.innerHTML = '<div class="no-data">No dependencies match the current filters</div>';
+                return;
+            }
+
+            let html = '';
+
+            Object.keys(filteredData).forEach(group => {
+                html += `<div class="dependency-card">
+                    <div class="dependency-header">${group}</div>`;
+
+                Object.keys(filteredData[group]).forEach(artifact => {
+                    html += `<div class="artifact-section">
+                        <div class="artifact-name">${artifact}</div>`;
+
+                    Object.keys(filteredData[group][artifact]).forEach(version => {
+                        const projects = filteredData[group][artifact][version];
+                        const versionClass = getVersionClass(version);
+
+                        html += `<div>
+                            <span class="version-badge ${versionClass}">${version}</span>
+                            <div class="projects-list">`;
+
+                        projects.forEach(project => {
+                            html += `<span class="project-tag">${project}</span>`;
+                        });
+
+                        html += `</div></div>`;
+                    });
+
+                    html += `</div>`;
+                });
+
+                html += `</div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function getVersionClass(version) {
+            if (version === 'inherited') return 'inherited';
+            if (version.startsWith('${')) return 'property';
+            return 'semantic';
+        }
+
+        function showError(message) {
+            const container = document.getElementById('matrixContainer');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

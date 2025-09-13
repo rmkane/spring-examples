@@ -21,6 +21,7 @@ MODULE_DEPS_07_elasticsearch = 00_common
 MODULE_DEPS_08_websocket = 00_common
 MODULE_DEPS_09_sse = 00_common
 MODULE_DEPS_10_scheduling = 00_common
+MODULE_DEPS_11_libs = 00_common
 
 # Function to get dependencies for a module
 get-deps = $(MODULE_DEPS_$(1))
@@ -113,6 +114,13 @@ run-sse:
 run-scheduling:
 	@echo "Running scheduling Spring Boot example..."
 	cd 10_scheduling && make run
+
+# Build and run the Hipparchus libs example
+run-libs:
+	@echo "Running Hipparchus mathematical library demo..."
+	cd 11_libs && make run
+	@echo "Analyzing POM files..."
+	python3 11_libs/scripts/cli.py analyze --pattern "**/pom.xml" --output-dir 11_libs/output
 
 # Start ActiveMQ broker
 broker:
@@ -243,6 +251,7 @@ info:
 	@echo "  make run-websocket              - Run WebSocket example (delegates to 08_websocket/Makefile)"
 	@echo "  make run-sse                    - Run SSE example (delegates to 09_sse/Makefile)"
 	@echo "  make run-scheduling             - Run scheduling example (delegates to 10_scheduling/Makefile)"
+	@echo "  make run-libs                   - Run Hipparchus libs example (delegates to 11_libs/Makefile)"
 	@echo "  make broker                     - Start ActiveMQ broker (delegates to 06_activemq/Makefile)"
 	@echo "  make elasticsearch              - Start Elasticsearch (delegates to 07_elasticsearch/Makefile)"
 	@echo "  make clean                      - Clean all modules"
