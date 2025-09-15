@@ -15,7 +15,7 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # =============================================================================
 # Type Definitions and Utilities
@@ -56,17 +56,9 @@ class PomInfo:
     name: str | None = None
     description: str | None = None
     parent: ParentInfo | None = None
-    dependencies: list[DependencyInfo] | None = None
-    managed_dependencies: list[DependencyInfo] | None = None
-    properties: dict[str, str | int | float] | None = None
-
-    def __post_init__(self):
-        if self.dependencies is None:
-            self.dependencies = []
-        if self.managed_dependencies is None:
-            self.managed_dependencies = []
-        if self.properties is None:
-            self.properties = {}
+    properties: dict[str, str] | None = field(default_factory=dict)
+    dependencies: list[DependencyInfo] | None = field(default_factory=list)
+    managed_dependencies: list[DependencyInfo] | None = field(default_factory=list)
 
 
 # =============================================================================
@@ -82,121 +74,186 @@ def _extract_namespace(root: ET.Element) -> str:
     return ""
 
 
-def _get_text(element: ET.Element | None, namespace: str = "") -> str | None:
-    """Get text content from XML element."""
-    match element:
-        case ET.Element() if element.text:
-            return element.text.strip()
-        case _:
-            return None
-
-
-def _parse_dependencies_from_element(
-    element: ET.Element | None,
-    namespace: str,
-) -> list[DependencyInfo]:
-    """Parse dependencies from a dependencies or dependencyManagement element."""
-    match element:
-        case None:
-            return []
-        case _:
-            return [
-                _parse_dependency_from_element(dep_elem, namespace)
-                for dep_elem in element.findall(f"{namespace}dependency")
-            ]
-
-
-def _parse_dependency_from_element(
-    element: ET.Element,
-    namespace: str,
-) -> DependencyInfo:
-    """Parse dependency from a dependency element."""
-    group_id = _get_text(element.find(f"{namespace}groupId"), namespace)
-    artifact_id = _get_text(element.find(f"{namespace}artifactId"), namespace)
-    version = _get_text(element.find(f"{namespace}version"), namespace)
-    scope = _get_text(element.find(f"{namespace}scope"), namespace)
-    return DependencyInfo(
-        gav=GavInfo(
-            group_id=group_id,
-            artifact_id=artifact_id,
-            version=version,
-        ),
-        scope=scope,
-    )
-
-
 # =============================================================================
 # POM Parsing Logic
 # =============================================================================
 
 
-def _parse_project_info(root: ET.Element, namespace: str) -> tuple:
-    """Parse basic project information from POM root."""
-    group_id = _get_text(root.find(f"{namespace}groupId"), namespace)
-    artifact_id = _get_text(root.find(f"{namespace}artifactId"), namespace)
-    version = _get_text(root.find(f"{namespace}version"), namespace)
-    packaging = _get_text(root.find(f"{namespace}packaging"), namespace) or "jar"
-    name = _get_text(root.find(f"{namespace}name"), namespace)
-    description = _get_text(root.find(f"{namespace}description"), namespace)
+class PomParser:
+    """Parser for Maven POM files with encapsulated root and namespace."""
 
-    return group_id, artifact_id, version, packaging, name, description
+    def __init__(self, root: ET.Element, namespace: str):
+        self.root = root
+        self.namespace = namespace
 
+    @classmethod
+    def from_file(cls, file_path: str) -> PomInfo:
+        """
+        Parse a pom.xml file and return a PomInfo dataclass.
 
-def _parse_parent(root: ET.Element, namespace: str) -> ParentInfo | None:
-    """Parse parent POM information."""
-    parent_elem = root.find(f"{namespace}parent")
-    if parent_elem is None:
-        return None
+        Args:
+            file_path: Path to the pom.xml file
 
-    group_id = _get_text(parent_elem.find(f"{namespace}groupId"), namespace)
-    artifact_id = _get_text(parent_elem.find(f"{namespace}artifactId"), namespace)
-    version = _get_text(parent_elem.find(f"{namespace}version"), namespace)
-    relative_path = _get_text(parent_elem.find(f"{namespace}relativePath"), namespace)
+        Returns:
+            PomInfo object with parsed data
 
-    gav = GavInfo(group_id=group_id, artifact_id=artifact_id, version=version)
-    return ParentInfo(gav=gav, relative_path=relative_path)
+        Raises:
+            FileNotFoundError: If the file doesn't exist
+            ET.ParseError: If the XML is malformed
+            PermissionError: If file cannot be read
+            Exception: For other parsing errors
+        """
+        try:
+            # Check if file exists
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"POM file not found: {file_path}")
 
+            # Check if file is readable
+            if not os.access(file_path, os.R_OK):
+                raise PermissionError(f"Cannot read POM file: {file_path}")
 
-def _parse_dependencies(root: ET.Element, namespace: str) -> list[DependencyInfo]:
-    """Parse dependencies section."""
-    deps_elem = root.find(f"{namespace}dependencies")
-    return _parse_dependencies_from_element(deps_elem, namespace)
+            # Parse XML
+            tree = ET.parse(file_path)
+            root = tree.getroot()
 
+            # Validate it's actually a POM file
+            if root.tag.endswith("project"):
+                namespace = _extract_namespace(root)
+            else:
+                raise ValueError(f"Not a valid Maven POM file: {file_path}")
 
-def _parse_dependency_management(
-    root: ET.Element, namespace: str
-) -> list[DependencyInfo]:
-    """Parse dependencyManagement section."""
-    dep_mgmt_elem = root.find(f"{namespace}dependencyManagement")
-    if dep_mgmt_elem is None:
-        return []
+            # Create parser and parse all sections
+            parser = cls(root, namespace)
+            return parser.parse()
 
-    deps_elem = dep_mgmt_elem.find(f"{namespace}dependencies")
-    return _parse_dependencies_from_element(deps_elem, namespace)
+        except ET.ParseError as e:
+            raise ET.ParseError(f"Malformed XML in {file_path}: {e}")
+        except Exception as e:
+            raise Exception(f"Failed to parse POM file {file_path}: {e}")
 
+    def parse(self) -> PomInfo:
+        """Parse the POM and return PomInfo object."""
+        group_id, artifact_id, version, packaging, name, description = (
+            self.parse_project_info()
+        )
+        parent = self.parse_parent()
+        dependencies = self.parse_dependencies()
+        managed_dependencies = self.parse_dependency_management()
+        properties = self.parse_properties()
 
-def _parse_properties(root: ET.Element, namespace: str) -> dict[str, str | int | float]:
-    """Parse properties section."""
-    properties: dict[str, str | int | float] = {}
-    props_elem = root.find(f"{namespace}properties")
-    if props_elem is None:
-        return properties
+        return PomInfo(
+            gav=GavInfo(
+                group_id=group_id,
+                artifact_id=artifact_id,
+                version=version,
+            ),
+            packaging=packaging,
+            name=name,
+            description=description,
+            parent=parent,
+            dependencies=dependencies,
+            managed_dependencies=managed_dependencies,
+            properties=properties,
+        )
 
-    for prop in props_elem:
-        tag_name = prop.tag
-        if namespace in tag_name:
-            tag_name = tag_name.replace(namespace, "")
-        if prop.text:
-            # Try to convert to number if possible
-            try:
-                if "." in prop.text:
-                    properties[tag_name] = float(prop.text)
-                else:
-                    properties[tag_name] = int(prop.text)
-            except ValueError:
-                properties[tag_name] = prop.text
+    def parse_project_info(self) -> tuple:
+        """Parse basic project information from POM root."""
+        group_id = self._find_text("groupId")
+        artifact_id = self._find_text("artifactId")
+        version = self._find_text("version")
+        packaging = self._find_text("packaging") or "jar"
+        name = self._find_text("name")
+        description = self._find_text("description")
 
-    return properties
+        return group_id, artifact_id, version, packaging, name, description
+
+    def parse_parent(self) -> ParentInfo | None:
+        """Parse parent POM information."""
+        parent_elem = self.root.find(f"{self.namespace}parent")
+        if parent_elem is None:
+            return None
+
+        group_id = self._find_text_in(parent_elem, "groupId")
+        artifact_id = self._find_text_in(parent_elem, "artifactId")
+        version = self._find_text_in(parent_elem, "version")
+        relative_path = self._find_text_in(parent_elem, "relativePath")
+
+        gav = GavInfo(group_id=group_id, artifact_id=artifact_id, version=version)
+        return ParentInfo(gav=gav, relative_path=relative_path)
+
+    def parse_dependencies(self) -> list[DependencyInfo]:
+        """Parse dependencies section."""
+        deps_elem = self.root.find(f"{self.namespace}dependencies")
+        return self._parse_dependencies_from_element(deps_elem)
+
+    def parse_dependency_management(self) -> list[DependencyInfo]:
+        """Parse dependencyManagement section."""
+        dep_mgmt_elem = self.root.find(f"{self.namespace}dependencyManagement")
+        if dep_mgmt_elem is None:
+            return []
+
+        deps_elem = dep_mgmt_elem.find(f"{self.namespace}dependencies")
+        return self._parse_dependencies_from_element(deps_elem)
+
+    def parse_properties(self) -> dict[str, str]:
+        """Parse properties section."""
+        props_elem = self.root.find(f"{self.namespace}properties")
+        if props_elem is None:
+            return {}
+
+        return {self._simple_tag_name(p.tag): p.text or "" for p in props_elem}
+
+    def _get_text(self, element: ET.Element | None) -> str | None:
+        """Get text content from an XML element."""
+        match element:
+            case None:
+                return None
+            case _:
+                return element.text
+
+    def _find_text(self, tag_name: str) -> str | None:
+        """Find element by tag name and return its text content."""
+        return self._get_text(self.root.find(f"{self.namespace}{tag_name}"))
+
+    def _find_text_in(self, parent: ET.Element, tag_name: str) -> str | None:
+        """Find element by tag name within parent and return its text content."""
+        return self._get_text(parent.find(f"{self.namespace}{tag_name}"))
+
+    def _parse_dependencies_from_element(
+        self, element: ET.Element | None
+    ) -> list[DependencyInfo]:
+        """Parse dependencies from a dependencies or dependencyManagement element."""
+        match element:
+            case None:
+                return []
+            case _:
+                return [
+                    self._parse_dependency_from_element(dep_elem)
+                    for dep_elem in element.findall(f"{self.namespace}dependency")
+                ]
+
+    def _parse_dependency_from_element(self, element: ET.Element) -> DependencyInfo:
+        """Parse dependency from a dependency element."""
+        group_id = self._find_text_in(element, "groupId")
+        artifact_id = self._find_text_in(element, "artifactId")
+        version = self._find_text_in(element, "version")
+        scope = self._find_text_in(element, "scope")
+        return DependencyInfo(
+            gav=GavInfo(
+                group_id=group_id,
+                artifact_id=artifact_id,
+                version=version,
+            ),
+            scope=scope,
+        )
+
+    def _simple_tag_name(self, tag_name: str) -> str:
+        """Get the simple tag name from a tag name."""
+        return (
+            tag_name.replace(self.namespace, "")
+            if self.namespace in tag_name
+            else tag_name
+        )
 
 
 def validate_pom(pom: PomInfo, file_path: str) -> list[str]:
@@ -268,70 +325,6 @@ def validate_pom(pom: PomInfo, file_path: str) -> list[str]:
     return issues
 
 
-def parse_pom(file_path: str) -> PomInfo:
-    """
-    Parse a pom.xml file and return a PomInfo dataclass.
-
-    Args:
-        file_path: Path to the pom.xml file
-
-    Returns:
-        PomInfo object with parsed data
-
-    Raises:
-        FileNotFoundError: If the file doesn't exist
-        ET.ParseError: If the XML is malformed
-        PermissionError: If file cannot be read
-        Exception: For other parsing errors
-    """
-    try:
-        # Check if file exists
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"POM file not found: {file_path}")
-
-        # Check if file is readable
-        if not os.access(file_path, os.R_OK):
-            raise PermissionError(f"Cannot read POM file: {file_path}")
-
-        # Parse XML
-        tree = ET.parse(file_path)
-        root = tree.getroot()
-
-        # Validate it's actually a POM file
-        if root.tag.endswith("project"):
-            namespace = _extract_namespace(root)
-        else:
-            raise ValueError(f"Not a valid Maven POM file: {file_path}")
-
-        # Parse all sections
-        group_id, artifact_id, version, packaging, name, description = (
-            _parse_project_info(root, namespace)
-        )
-        parent = _parse_parent(root, namespace)
-        dependencies = _parse_dependencies(root, namespace)
-        managed_dependencies = _parse_dependency_management(root, namespace)
-        properties = _parse_properties(root, namespace)
-
-        # Create project GAV
-        gav = GavInfo(group_id=group_id, artifact_id=artifact_id, version=version)
-
-        return PomInfo(
-            gav=gav,
-            packaging=packaging,
-            name=name,
-            description=description,
-            parent=parent,
-            dependencies=dependencies,
-            managed_dependencies=managed_dependencies,
-            properties=properties,
-        )
-
-    except ET.ParseError as e:
-        raise ET.ParseError(f"Malformed XML in {file_path}: {e}")
-    except Exception as e:
-        raise Exception(f"Failed to parse POM file {file_path}: {e}")
-
-
 # =============================================================================
 # Property Resolution Utilities
 # =============================================================================
@@ -341,7 +334,7 @@ class PropertyResolver:
     """Utility class for resolving Maven property placeholders."""
 
     @staticmethod
-    def resolve(value: str, properties: dict[str, str | int | float] | None) -> str:
+    def resolve(value: str, properties: dict[str, str] | None) -> str:
         """
         Resolve property placeholders in a string.
 
@@ -483,7 +476,7 @@ def process_pom(file_path: str, verbose: bool = False) -> PomInfo:
         Exception: If parsing fails
     """
     try:
-        pom = parse_pom(file_path)
+        pom = PomParser.from_file(file_path)
         print_pom(pom, file_path, verbose)
         return pom
     except Exception as e:
@@ -500,46 +493,6 @@ def process_pom(file_path: str, verbose: bool = False) -> PomInfo:
 def make_group_dict():
     """Factory function for creating nested defaultdict structure."""
     return defaultdict(lambda: defaultdict(lambda: defaultdict(set)))
-
-
-def _sort_version_keys(versions: list[str]) -> list[str]:
-    """
-    Sort version keys intelligently.
-
-    Args:
-        versions: List of version strings to sort
-
-    Returns:
-        Sorted list with 'inherited' first, then properties, then semantic versions
-    """
-
-    def version_key(version):
-        match version:
-            case "inherited":
-                return (0, version)
-            case str() if version.startswith("${") and version.endswith("}"):
-                return (1, version)
-            case _:
-                # For semantic versions, try to parse and sort numerically
-                try:
-                    # Simple semantic version parsing (major.minor.patch)
-                    parts = version.split(".")
-                    if len(parts) >= 3:
-                        major = int(parts[0]) if parts[0].isdigit() else 0
-                        minor = int(parts[1]) if parts[1].isdigit() else 0
-                        patch = int(parts[2]) if parts[2].isdigit() else 0
-                        return (
-                            2,
-                            -major,
-                            -minor,
-                            -patch,
-                            version,
-                        )  # Negative for descending order
-                except (ValueError, IndexError):
-                    pass
-                return (2, version)
-
-    return sorted(versions, key=version_key)
 
 
 def _process_dependencies(
@@ -605,12 +558,13 @@ def create_dict(pom_list: list[PomInfo]) -> dict:
 # =============================================================================
 
 
-def prepare_for_serialization(obj) -> dict | list:
+def prepare_for_serialization(obj, is_version_level: bool = False) -> dict | list:
     """
     Prepare data structure for JSON serialization.
 
     Args:
         obj: Object to prepare (defaultdict, set, or other)
+        is_version_level: Whether this is processing version keys (third level)
 
     Returns:
         JSON-serializable object
@@ -621,14 +575,26 @@ def prepare_for_serialization(obj) -> dict | list:
             for key, value in obj.items():
                 match value:
                     case defaultdict():
-                        result[key] = prepare_for_serialization(value)
+                        # Check if this is the version level (third level)
+                        # Version level has sets as values
+                        is_version = isinstance(value, defaultdict) and any(
+                            isinstance(v, set) for v in value.values()
+                        )
+                        result[key] = prepare_for_serialization(value, is_version)
                     case set():
                         result[key] = sorted(list(value))
+                    case list():
+                        result[key] = sorted(value)
                     case _:
                         result[key] = prepare_for_serialization(value)
 
-            # Sort keys alphabetically
-            return dict(sorted(result.items()))
+            # Apply version sorting if this is the version level
+            if is_version_level:
+                return dict(
+                    sorted(result.items(), key=lambda x: _version_sort_key(x[0]))
+                )
+            else:
+                return dict(sorted(result.items()))
 
         case set():
             return sorted(list(obj))
@@ -638,17 +604,74 @@ def prepare_for_serialization(obj) -> dict | list:
             for key, value in obj.items():
                 match value:
                     case defaultdict():
-                        result[key] = prepare_for_serialization(value)
+                        # Check if this is the version level
+                        is_version = isinstance(value, defaultdict) and any(
+                            isinstance(v, set) for v in value.values()
+                        )
+                        result[key] = prepare_for_serialization(value, is_version)
+                    case dict():
+                        # Check if this is the version level (has lists as values)
+                        is_version = isinstance(value, dict) and any(
+                            isinstance(v, list) for v in value.values()
+                        )
+                        result[key] = prepare_for_serialization(value, is_version)
                     case set():
                         result[key] = sorted(list(value))
+                    case list():
+                        result[key] = sorted(value)
                     case _:
                         result[key] = prepare_for_serialization(value)
 
-            # Sort keys alphabetically
-            return dict(sorted(result.items()))
+            # Apply version sorting if this is the version level
+            if is_version_level:
+                return dict(
+                    sorted(result.items(), key=lambda x: _version_sort_key(x[0]))
+                )
+            else:
+                return dict(sorted(result.items()))
 
         case _:
             return obj
+
+
+def _version_sort_key(version: str) -> tuple:
+    """Create sort key for version strings."""
+    # Non-versions (like "inherited", property placeholders) get priority 0
+    if version in ["inherited"] or version.startswith("${"):
+        return (0, version)
+
+    # Check if it's a semantic version (contains dots and numbers)
+    if "." in version and any(c.isdigit() for c in version):
+        try:
+            # Split by dots and convert numeric parts to integers
+            parts = []
+            for part in version.split("."):
+                # Handle parts like "1", "10", "20-SNAPSHOT"
+                if part.isdigit():
+                    parts.append(int(part))
+                else:
+                    # For parts like "20-SNAPSHOT", extract the number
+                    numeric_part = ""
+                    for char in part:
+                        if char.isdigit():
+                            numeric_part += char
+                        else:
+                            break
+                    if numeric_part:
+                        parts.append(int(numeric_part))
+                    else:
+                        parts.append(0)
+
+            # Pad with zeros to ensure consistent comparison
+            while len(parts) < 4:
+                parts.append(0)
+
+            return (1, *parts, version)  # 1 for versions
+        except (ValueError, IndexError):
+            pass
+
+    # Other non-versions get priority 0
+    return (0, version)
 
 
 def write_json(data: dict | list, file_path: str) -> None:
@@ -806,14 +829,14 @@ def cmd_generate(args) -> None:
         sample_matrix = {
             "org.springframework.boot": {
                 "spring-boot-starter-web": {
-                    "3.5.5": ["web", "rest"],
                     "inherited": ["basic"],
+                    "3.5.5": ["web", "rest"],
                 },
                 "spring-boot-starter-security": {"3.5.5": ["security"]},
             },
             "org.projectlombok": {"lombok": {"inherited": ["security", "web"]}},
             "com.h2database": {"h2": {"inherited": ["security"]}},
-            "commons-io": {"commons-io": {"2.20.0": ["common"], "inherited": ["web"]}},
+            "commons-io": {"commons-io": {"inherited": ["web"], "2.20.0": ["common"]}},
         }
 
         # Write fake sample data to file
