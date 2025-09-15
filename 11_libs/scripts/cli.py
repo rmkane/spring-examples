@@ -326,7 +326,7 @@ class PropertyResolver:
     """Utility class for resolving Maven property placeholders."""
 
     @staticmethod
-    def resolve(value: str, properties: dict[str, str | int | float]) -> str:
+    def resolve(value: str, properties: dict[str, str | int | float] | None) -> str:
         """
         Resolve property placeholders in a string.
 
@@ -337,6 +337,9 @@ class PropertyResolver:
         Returns:
             String with resolved properties
         """
+        if not properties:
+            return value
+
         if not isinstance(value, str) or "${" not in value:
             return value
 
@@ -523,6 +526,41 @@ def _sort_version_keys(versions: list[str]) -> list[str]:
     return sorted(versions, key=version_key)
 
 
+def _process_dependencies(
+    dependencies: list[DependencyInfo] | None,
+    pom: PomInfo,
+    matrix: dict,
+) -> None:
+    """
+    Process a list of dependencies and add them to the matrix.
+
+    Args:
+        dependencies: List of dependencies to process (can be None)
+        pom: POM info containing properties for version resolution
+        matrix: Matrix dictionary to update
+    """
+    if not dependencies:
+        return
+
+    project_name = pom.gav.artifact_id or "unknown"
+
+    for dep in dependencies:
+        if not dep.gav.group_id or not dep.gav.artifact_id:
+            continue
+
+        group_id = dep.gav.group_id
+        artifact_id = dep.gav.artifact_id
+        version = _resolve_version(dep, pom)
+
+        matrix[group_id][artifact_id][version].add(project_name)
+
+def _resolve_version(dep: DependencyInfo, pom: PomInfo) -> str:
+    """Resolve a version string using properties."""
+    if not dep.gav.version:
+        return "inherited"
+    return PropertyResolver.resolve(dep.gav.version, pom.properties)
+
+
 def create_dict(pom_list: list[PomInfo]) -> dict:
     """
     Create a nested dictionary structure from a list of PomInfo objects.
@@ -536,45 +574,11 @@ def create_dict(pom_list: list[PomInfo]) -> dict:
     matrix = make_group_dict()
 
     for pom in pom_list:
-        project_name = pom.gav.artifact_id or "unknown"
-
         # Process regular dependencies
-        if pom.dependencies:
-            for dep in pom.dependencies:
-                if not dep.gav.group_id or not dep.gav.artifact_id:
-                    continue
-
-                group_id = dep.gav.group_id
-                artifact_id = dep.gav.artifact_id
-
-                # Resolve version using properties
-                if dep.gav.version:
-                    resolved_version = PropertyResolver.resolve(
-                        dep.gav.version, pom.properties or {}
-                    )
-                else:
-                    resolved_version = "inherited"
-
-                matrix[group_id][artifact_id][resolved_version].add(project_name)
+        _process_dependencies(pom.dependencies, pom, matrix)
 
         # Process managed dependencies
-        if pom.managed_dependencies:
-            for dep in pom.managed_dependencies:
-                if not dep.gav.group_id or not dep.gav.artifact_id:
-                    continue
-
-                group_id = dep.gav.group_id
-                artifact_id = dep.gav.artifact_id
-
-                # Resolve version using properties
-                if dep.gav.version:
-                    resolved_version = PropertyResolver.resolve(
-                        dep.gav.version, pom.properties or {}
-                    )
-                else:
-                    resolved_version = "inherited"
-
-                matrix[group_id][artifact_id][resolved_version].add(project_name)
+        _process_dependencies(pom.managed_dependencies, pom, matrix)
 
     return matrix
 
