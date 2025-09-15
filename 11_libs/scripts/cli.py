@@ -84,30 +84,45 @@ def _extract_namespace(root: ET.Element) -> str:
 
 def _get_text(element: ET.Element | None, namespace: str = "") -> str | None:
     """Get text content from XML element."""
-    if element is not None and element.text:
-        return element.text.strip()
-    return None
+    match element:
+        case ET.Element() if element.text:
+            return element.text.strip()
+        case _:
+            return None
 
 
 def _parse_dependencies_from_element(
-    element: ET.Element | None, namespace: str
+    element: ET.Element | None,
+    namespace: str,
 ) -> list[DependencyInfo]:
     """Parse dependencies from a dependencies or dependencyManagement element."""
-    if element is None:
-        return []
+    match element:
+        case None:
+            return []
+        case _:
+            return [
+                _parse_dependency_from_element(dep_elem, namespace)
+                for dep_elem in element.findall(f"{namespace}dependency")
+            ]
 
-    dependencies = []
-    for dep_elem in element.findall(f"{namespace}dependency"):
-        group_id = _get_text(dep_elem.find(f"{namespace}groupId"), namespace)
-        artifact_id = _get_text(dep_elem.find(f"{namespace}artifactId"), namespace)
-        version = _get_text(dep_elem.find(f"{namespace}version"), namespace)
-        scope = _get_text(dep_elem.find(f"{namespace}scope"), namespace)
 
-        gav = GavInfo(group_id=group_id, artifact_id=artifact_id, version=version)
-        dependency = DependencyInfo(gav=gav, scope=scope)
-        dependencies.append(dependency)
-
-    return dependencies
+def _parse_dependency_from_element(
+    element: ET.Element,
+    namespace: str,
+) -> DependencyInfo:
+    """Parse dependency from a dependency element."""
+    group_id = _get_text(element.find(f"{namespace}groupId"), namespace)
+    artifact_id = _get_text(element.find(f"{namespace}artifactId"), namespace)
+    version = _get_text(element.find(f"{namespace}version"), namespace)
+    scope = _get_text(element.find(f"{namespace}scope"), namespace)
+    return DependencyInfo(
+        gav=GavInfo(
+            group_id=group_id,
+            artifact_id=artifact_id,
+            version=version,
+        ),
+        scope=scope,
+    )
 
 
 # =============================================================================
@@ -499,29 +514,30 @@ def _sort_version_keys(versions: list[str]) -> list[str]:
     """
 
     def version_key(version):
-        if version == "inherited":
-            return (0, version)
-        elif version.startswith("${") and version.endswith("}"):
-            return (1, version)
-        else:
-            # For semantic versions, try to parse and sort numerically
-            try:
-                # Simple semantic version parsing (major.minor.patch)
-                parts = version.split(".")
-                if len(parts) >= 3:
-                    major = int(parts[0]) if parts[0].isdigit() else 0
-                    minor = int(parts[1]) if parts[1].isdigit() else 0
-                    patch = int(parts[2]) if parts[2].isdigit() else 0
-                    return (
-                        2,
-                        -major,
-                        -minor,
-                        -patch,
-                        version,
-                    )  # Negative for descending order
-            except (ValueError, IndexError):
-                pass
-            return (2, version)
+        match version:
+            case "inherited":
+                return (0, version)
+            case str() if version.startswith("${") and version.endswith("}"):
+                return (1, version)
+            case _:
+                # For semantic versions, try to parse and sort numerically
+                try:
+                    # Simple semantic version parsing (major.minor.patch)
+                    parts = version.split(".")
+                    if len(parts) >= 3:
+                        major = int(parts[0]) if parts[0].isdigit() else 0
+                        minor = int(parts[1]) if parts[1].isdigit() else 0
+                        patch = int(parts[2]) if parts[2].isdigit() else 0
+                        return (
+                            2,
+                            -major,
+                            -minor,
+                            -patch,
+                            version,
+                        )  # Negative for descending order
+                except (ValueError, IndexError):
+                    pass
+                return (2, version)
 
     return sorted(versions, key=version_key)
 
@@ -553,6 +569,7 @@ def _process_dependencies(
         version = _resolve_version(dep, pom)
 
         matrix[group_id][artifact_id][version].add(project_name)
+
 
 def _resolve_version(dep: DependencyInfo, pom: PomInfo) -> str:
     """Resolve a version string using properties."""
@@ -598,37 +615,40 @@ def prepare_for_serialization(obj) -> dict | list:
     Returns:
         JSON-serializable object
     """
-    if isinstance(obj, defaultdict):
-        result = {}
-        for key, value in obj.items():
-            if isinstance(value, defaultdict):
-                result[key] = prepare_for_serialization(value)
-            elif isinstance(value, set):
-                result[key] = sorted(list(value))
-            else:
-                result[key] = prepare_for_serialization(value)
+    match obj:
+        case defaultdict():
+            result = {}
+            for key, value in obj.items():
+                match value:
+                    case defaultdict():
+                        result[key] = prepare_for_serialization(value)
+                    case set():
+                        result[key] = sorted(list(value))
+                    case _:
+                        result[key] = prepare_for_serialization(value)
 
-        # Sort keys alphabetically
-        return dict(sorted(result.items()))
+            # Sort keys alphabetically
+            return dict(sorted(result.items()))
 
-    elif isinstance(obj, set):
-        return sorted(list(obj))
+        case set():
+            return sorted(list(obj))
 
-    elif isinstance(obj, dict):
-        result = {}
-        for key, value in obj.items():
-            if isinstance(value, defaultdict):
-                result[key] = prepare_for_serialization(value)
-            elif isinstance(value, set):
-                result[key] = sorted(list(value))
-            else:
-                result[key] = prepare_for_serialization(value)
+        case dict():
+            result = {}
+            for key, value in obj.items():
+                match value:
+                    case defaultdict():
+                        result[key] = prepare_for_serialization(value)
+                    case set():
+                        result[key] = sorted(list(value))
+                    case _:
+                        result[key] = prepare_for_serialization(value)
 
-        # Sort keys alphabetically
-        return dict(sorted(result.items()))
+            # Sort keys alphabetically
+            return dict(sorted(result.items()))
 
-    else:
-        return obj
+        case _:
+            return obj
 
 
 def write_json(data: dict | list, file_path: str) -> None:
@@ -897,13 +917,16 @@ def main() -> None:
         args.command = "analyze"
 
     # Execute the appropriate command
-    if args.command == "analyze":
-        cmd_analyze(args)
-    elif args.command == "generate":
-        cmd_generate(args)
-    else:
-        parser.print_help()
-        sys.exit(1)
+    match args.command:
+        case "analyze":
+            cmd_analyze(args)
+        case "generate":
+            cmd_generate(args)
+        case _:
+            parser.print_help()
+            sys.exit(1)
+
+    print(f"🔍 Executing command: {args.command}")
 
 
 if __name__ == "__main__":
