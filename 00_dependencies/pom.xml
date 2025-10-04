@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.foo</groupId>
+    <artifactId>foo-dependencies</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Spring Examples - Dependencies</name>
+    <description>Dependencies shared across all Spring example modules</description>
+
+     <properties>
+        <!-- Project version -->
+        <project.version>0.1.0-SNAPSHOT</project.version>
+
+        <!-- Spring Boot -->
+        <spring-boot.version>3.5.6</spring-boot.version>
+
+        <!-- Apache Commons extra libraries -->
+        <commons-io.version>2.20.0</commons-io.version>
+        <commons-collections4.version>4.5.0</commons-collections4.version>
+
+        <!-- Math libraries -->
+        <hipparchus.version>4.0.1</hipparchus.version>
+
+        <!-- Maven Plugin Versions (from Spring Boot) -->
+        <exec-maven-plugin.version>3.3.0</exec-maven-plugin.version>
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+        <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+        <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
+        <maven-install-plugin.version>3.1.1</maven-install-plugin.version>
+        <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
+        <maven-clean-plugin.version>3.3.2</maven-clean-plugin.version>
+        <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
+        <spring-boot-maven-plugin.version>3.5.6</spring-boot-maven-plugin.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot import BOM -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Commons IO -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
+            <!-- Commons Collections -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons-collections4.version}</version>
+            </dependency>
+
+            <!-- Hipparchus Core -->
+            <dependency>
+                <groupId>org.hipparchus</groupId>
+                <artifactId>hipparchus-core</artifactId>
+                <version>${hipparchus.version}</version>
+            </dependency>
+
+            <!-- Hipparchus Geometry -->
+            <dependency>
+                <groupId>org.hipparchus</groupId>
+                <artifactId>hipparchus-geometry</artifactId>
+                <version>${hipparchus.version}</version>
+            </dependency>
+
+            <!-- Hipparchus Statistics -->
+            <dependency>
+                <groupId>org.hipparchus</groupId>
+                <artifactId>hipparchus-stat</artifactId>
+                <version>${hipparchus.version}</version>
+            </dependency>
+
+            <!-- Internal Project Dependencies -->
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>basic</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>rest</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>logging</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>activemq</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>elasticsearch</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>websocket</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>sse</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>scheduling</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.foo</groupId>
+                <artifactId>libs</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

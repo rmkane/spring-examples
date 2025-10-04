@@ -8,17 +8,19 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
 
 - [Project Structure](#project-structure)
 - [Modules Overview](#modules-overview)
-  - [00 common](#00-common)
-  - [01 basic](#01-basic)
-  - [02 web](#02-web)
-  - [03 rest](#03-rest)
-  - [04 logging](#04-logging)
-  - [05 security](#05-security)
-  - [06 activemq](#06-activemq)
-  - [07 elasticsearch](#07-elasticsearch)
-  - [08 websocket](#08-websocket)
-  - [09 sse](#09-sse)
-  - [10 scheduling](#10-scheduling)
+  - [00 dependencies](#00-dependencies)
+  - [01 starter\_parent](#01-starter_parent)
+  - [02 basic](#02-basic)
+  - [03 web](#03-web)
+  - [04 rest](#04-rest)
+  - [05 logging](#05-logging)
+  - [06 security](#06-security)
+  - [07 activemq](#07-activemq)
+  - [08 elasticsearch](#08-elasticsearch)
+  - [09 websocket](#09-websocket)
+  - [10 sse](#10-sse)
+  - [11 scheduling](#11-scheduling)
+  - [12 libs](#12-libs)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
   - [1. Build All Modules](#1-build-all-modules)
@@ -65,17 +67,19 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
 
 ```none
 spring-examples/
-├── 00_common/           # Shared parent POM with Spring Boot configuration
-├── 01_basic/            # Basic Spring Boot console application
-├── 02_web/              # Spring Boot web application with HTML controller
-├── 03_rest/             # Spring Boot REST API example
-├── 04_logging/          # Advanced logging configuration example
-├── 05_security/         # Spring Security with authentication and authorization
-├── 06_activemq/          # ActiveMQ messaging example
-├── 07_elasticsearch/    # Elasticsearch integration example
-├── 08_websocket/        # WebSocket real-time communication example
-├── 09_sse/             # Server-Sent Events (SSE) example
-├── 10_scheduling/      # Scheduling with desync logic example
+├── 00_dependencies/     # Custom dependencies BOM (foo-dependencies)
+├── 01_starter_parent/   # Custom starter parent POM (foo-starter-parent)
+├── 02_basic/            # Basic Spring Boot console application
+├── 03_web/              # Spring Boot web application with HTML controller
+├── 04_rest/             # Spring Boot REST API example
+├── 05_logging/          # Advanced logging configuration example
+├── 06_security/         # Spring Security with authentication and authorization
+├── 07_activemq/         # ActiveMQ messaging example
+├── 08_elasticsearch/    # Elasticsearch integration example
+├── 09_websocket/        # WebSocket real-time communication example
+├── 10_sse/              # Server-Sent Events (SSE) example
+├── 11_scheduling/       # Scheduling with desync logic example
+├── 12_libs/             # External libraries integration example (Hipparchus)
 ├── pom.xml              # Root aggregator POM
 ├── Makefile             # Build automation and project management
 └── README.md            # This file
@@ -83,16 +87,26 @@ spring-examples/
 
 ## Modules Overview
 
-### 00 common
+### 00 dependencies
 
-- **Purpose**: Shared parent POM for all modules
+- **Purpose**: Custom dependencies BOM (Bill of Materials)
 - **Features**:
-  - Spring Boot 3.5.5 parent
-  - JDK 17 configuration
-  - Common dependencies and properties
-  - Centralized Maven compiler settings
+  - Imports Spring Boot dependencies BOM
+  - Manages Maven plugin versions
+  - Centralizes dependency version management
+  - Provides internal project dependency management
 
-### 01 basic
+### 01 starter_parent
+
+- **Purpose**: Custom starter parent POM for all modules
+- **Features**:
+  - Extends `foo-dependencies` BOM
+  - Provides plugin management with Lombok support
+  - Centralized Maven compiler settings
+  - Spring Boot Maven plugin configuration
+  - JDK 17 configuration
+
+### 02 basic
 
 - **Purpose**: Simple Spring Boot console application
 - **Features**:
@@ -100,7 +114,7 @@ spring-examples/
   - Console output demonstration
   - JDK 17 features showcase
 
-### 02 web
+### 03 web
 
 - **Purpose**: Spring Boot web application
 - **Features**:
@@ -108,7 +122,7 @@ spring-examples/
   - HTML controller with GET endpoint
   - Simple web interface
 
-### 03 rest
+### 04 rest
 
 - **Purpose**: Spring Boot REST API
 - **Features**:
@@ -116,7 +130,7 @@ spring-examples/
   - JSON response examples
   - API status endpoint
 
-### 04 logging
+### 05 logging
 
 - **Purpose**: Advanced logging configuration
 - **Features**:
@@ -126,7 +140,7 @@ spring-examples/
   - Custom Logback configuration
   - REST endpoints for testing logging
 
-### 05 security
+### 06 security
 
 - **Purpose**: Comprehensive Spring Security implementation
 - **Features**:
@@ -137,8 +151,9 @@ spring-examples/
   - Thymeleaf templates with security integration
   - H2 database for demonstration
   - API endpoints with role-based access
+  - Lombok integration for reduced boilerplate
 
-### 06 activemq
+### 07 activemq
 
 - **Purpose**: ActiveMQ messaging integration
 - **Features**:
@@ -148,7 +163,7 @@ spring-examples/
   - REST endpoints for sending messages
   - Embedded ActiveMQ broker
 
-### 07 elasticsearch
+### 08 elasticsearch
 
 - **Purpose**: Elasticsearch integration and search functionality
 - **Features**:
@@ -158,7 +173,7 @@ spring-examples/
   - Custom search queries and filters
   - Elasticsearch client configuration
 
-### 08 websocket
+### 09 websocket
 
 - **Purpose**: Real-time WebSocket communication with FizzBuzz algorithm
 - **Features**:
@@ -170,7 +185,7 @@ spring-examples/
   - Live statistics and message counters
   - Interactive connection management
 
-### 09 sse
+### 10 sse
 
 - **Purpose**: Server-Sent Events (SSE) real-time communication
 - **Features**:
@@ -183,7 +198,7 @@ spring-examples/
   - Interactive connection management
   - Graceful error handling and reconnection
 
-### 10 scheduling
+### 11 scheduling
 
 - **Purpose**: Scheduling with desynchronization patterns
 - **Features**:
@@ -195,6 +210,16 @@ spring-examples/
   - Real-time task statistics and monitoring
   - Modern responsive UI with live task execution log
   - Interactive controls for managing scheduled tasks
+
+### 12 libs
+
+- **Purpose**: External libraries integration example
+- **Features**:
+  - Hipparchus mathematical library integration
+  - Statistical calculations and mathematical operations
+  - Demonstrates integration with third-party libraries
+  - Maven Shade plugin for executable JAR
+  - Mathematical computation examples
 
 ## Prerequisites
 
@@ -382,8 +407,10 @@ Each module has its own `application.yml` file:
 
 ### Spring Boot Version
 
-- **Version**: 3.5.5
-- **Parent**: `spring-boot-starter-parent`
+- **Version**: 3.5.6
+- **Dependencies BOM**: `org.foo:foo-dependencies` (imports Spring Boot BOM)
+- **Starter Parent**: `org.foo:foo-starter-parent` (extends foo-dependencies)
+- **Package Structure**: `org.foo.*` (custom package namespace)
 
 ## Development Workflow
 
@@ -391,15 +418,18 @@ Each module has its own `application.yml` file:
 
 1. Create module directory with standard Maven structure
 2. Add module to root `pom.xml` `<modules>` section
-3. Configure module dependencies in `Makefile` if needed
-4. Add run target to `Makefile`
-5. Update help text
+3. Add module dependency to `00_dependencies/pom.xml` if needed
+4. Configure module dependencies in `Makefile` if needed
+5. Add run target to `Makefile`
+6. Update help text
+7. Use `org.foo` package namespace
 
 ### Module Dependencies
 
-- All modules inherit from `00_common`
-- Dependencies are managed in the `Makefile` for build order
-- Use `MODULE_DEPS_<module_name>` variables to define dependencies
+- All modules inherit from `org.foo:foo-starter-parent`
+- Dependencies are managed in `00_dependencies` BOM
+- Internal project dependencies are managed in `foo-dependencies`
+- Use `MODULE_DEPS_<module_name>` variables in `Makefile` to define build order
 
 ### Testing
 
@@ -449,11 +479,13 @@ make list-modules
 ### Adding New Examples
 
 1. Follow the existing module structure
-2. Use `00_common` as parent
+2. Use `org.foo:foo-starter-parent` as parent
 3. Add appropriate Spring Boot starters
 4. Include `application.yml` configuration
 5. Add Makefile targets
 6. Update documentation
+7. Use `org.foo` package namespace
+8. Add Lombok annotations if needed (already configured in parent)
 
 ### Code Style
 

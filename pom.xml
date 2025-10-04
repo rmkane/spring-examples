@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example.spring</groupId>
+    <groupId>org.foo</groupId>
     <artifactId>root</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -13,17 +13,18 @@
     <description>Multi-module Spring Boot examples demonstrating various Spring features and integrations</description>
 
     <modules>
-        <module>00_common</module>
-        <module>01_basic</module>
-        <module>02_web</module>
-        <module>03_rest</module>
-        <module>04_logging</module>
-        <module>05_security</module>
-        <module>06_activemq</module>
-        <module>07_elasticsearch</module>
-        <module>08_websocket</module>
-        <module>09_sse</module>
-        <module>10_scheduling</module>
-        <module>11_libs</module>
+        <module>00_dependencies</module>
+        <module>01_starter_parent</module>
+        <module>02_basic</module>
+        <module>03_web</module>
+        <module>04_rest</module>
+        <module>05_logging</module>
+        <module>06_security</module>
+        <module>07_activemq</module>
+        <module>08_elasticsearch</module>
+        <module>09_websocket</module>
+        <module>10_sse</module>
+        <module>11_scheduling</module>
+        <module>12_libs</module>
     </modules>
 </project>
