@@ -6,24 +6,23 @@
 # Default target
 all: install
 
-# Get all module directories (excluding dependencies and root)
-MODULES := $(shell find . -maxdepth 1 -name "[0-9][0-9]_*" -type d | grep -v "00_dependencies" | sort | sed 's|./||')
+# Get all module directories (excluding pom and root)
+MODULES := $(shell find . -maxdepth 1 -name "[0-9][0-9]_*" -type d | grep -v "01_pom" | sort | sed 's|./||')
 
 # Define module dependencies (module: dependencies)
 # Format: MODULE_DEPS_<module_name> = dependency1 dependency2
 
-MODULE_DEPS_01_starter_parent = 00_dependencies
-MODULE_DEPS_02_basic = 01_starter_parent
-MODULE_DEPS_03_web = 01_starter_parent
-MODULE_DEPS_04_rest = 01_starter_parent
-MODULE_DEPS_05_logging = 01_starter_parent
-MODULE_DEPS_06_security = 01_starter_parent
-MODULE_DEPS_07_activemq = 01_starter_parent
-MODULE_DEPS_08_elasticsearch = 01_starter_parent
-MODULE_DEPS_09_websocket = 01_starter_parent
-MODULE_DEPS_10_sse = 01_starter_parent
-MODULE_DEPS_11_scheduling = 01_starter_parent
-MODULE_DEPS_12_libs = 01_starter_parent
+MODULE_DEPS_02_basic = 01_pom
+MODULE_DEPS_03_web = 01_pom
+MODULE_DEPS_04_rest = 01_pom
+MODULE_DEPS_05_logging = 01_pom
+MODULE_DEPS_06_security = 01_pom
+MODULE_DEPS_07_activemq = 01_pom
+MODULE_DEPS_08_elasticsearch = 01_pom
+MODULE_DEPS_09_websocket = 01_pom
+MODULE_DEPS_10_sse = 01_pom
+MODULE_DEPS_11_scheduling = 01_pom
+MODULE_DEPS_12_libs = 01_pom
 
 # Function to get dependencies for a module
 get-deps = $(MODULE_DEPS_$(1))
@@ -122,7 +121,7 @@ run-libs:
 	@echo "Running Hipparchus mathematical library demo..."
 	cd 12_libs && make run
 	@echo "Analyzing POM files..."
-	python3 11_libs/scripts/cli.py analyze --pattern "**/pom.xml" --output-dir 11_libs/output
+	python3 12_libs/scripts/cli.py analyze --pattern "**/pom.xml" --output-dir 12_libs/output
 
 # Start ActiveMQ broker
 broker:
@@ -136,10 +135,8 @@ elasticsearch:
 
 # Build specific modules in correct order
 build-common:
-	@echo "Building dependencies module..."
-	cd 00_dependencies && mvn clean install
-	@echo "Building starter parent module..."
-	cd 01_starter_parent && mvn clean install
+	@echo "Building POM module..."
+	cd 01_pom && mvn clean install
 
 # Build a module and its dependencies
 build-module-with-deps:
@@ -150,13 +147,13 @@ build-module-with-deps:
 	fi
 	@echo "Building module $(MODULE) with dependencies..."
 	@# Build common first if needed
-	@if [ "$(MODULE)" != "00_dependencies" ]; then \
+	@if [ "$(MODULE)" != "01_pom" ]; then \
 		$(MAKE) build-common; \
 	fi
 	@# Build dependencies
 	@deps="$(call get-deps,$(MODULE))"; \
 	for dep in $$deps; do \
-		if [ "$$dep" != "00_dependencies" ]; then \
+		if [ "$$dep" != "01_pom" ]; then \
 			echo "Building dependency: $$dep"; \
 			cd $$dep && mvn clean compile && cd ..; \
 		fi; \
@@ -198,8 +195,7 @@ run-module:
 # List all available modules with dependencies
 list-modules:
 	@echo "Available modules:"
-	@echo "  00_dependencies (dependencies BOM)"
-	@echo "  01_starter_parent (starter parent POM)"
+	@echo "  01_pom (multi-module POM structure)"
 	@for module in $(MODULES); do \
 		deps="$(call get-deps,$$module)"; \
 		if [ -n "$$deps" ]; then \
@@ -212,14 +208,13 @@ list-modules:
 # Show dependency tree
 show-deps:
 	@echo "Module Dependency Tree:"
-	@echo "  00_dependencies"
-	@echo "  01_starter_parent -> 00_dependencies"
+	@echo "  01_pom"
 	@for module in $(MODULES); do \
 		deps="$(call get-deps,$$module)"; \
 		if [ -n "$$deps" ]; then \
 			echo "  $$module -> $$deps"; \
 		else \
-			echo "  $$module -> 01_starter_parent"; \
+			echo "  $$module -> 01_pom"; \
 		fi; \
 	done
 
@@ -239,8 +234,7 @@ dev-setup: install
 # Show project structure
 info:
 	@echo "Spring Examples Project Structure:"
-	@echo "├── 00_dependencies/  (dependencies BOM)"
-	@echo "├── 01_starter_parent/ (starter parent POM)"
+	@echo "├── 01_pom/  (multi-module POM structure)"
 	@for module in $(MODULES); do \
 		echo "├── $$module/"; \
 	done
@@ -265,7 +259,7 @@ info:
 	@echo "  make kill                       - Kill running Spring Boot applications"
 	@echo "  make test                       - Run all tests"
 	@echo "  make deploy                     - Deploy to remote repository"
-	@echo "  make build-common               - Build dependencies and starter parent only"
+	@echo "  make build-common               - Build POM module only"
 	@echo "  make build-module MODULE=name   - Build specific module"
 	@echo "  make build-module-with-deps MODULE=name - Build module with dependencies"
 	@echo "  make run-module MODULE=name     - Run specific module"

@@ -12,6 +12,7 @@
     </parent>
 
     <artifactId>libs</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Example 11: Hipparchus Mathematical Library Demo</name>

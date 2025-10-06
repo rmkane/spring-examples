@@ -12,9 +12,12 @@
     <name>Spring Examples - Root Project</name>
     <description>Multi-module Spring Boot examples demonstrating various Spring features and integrations</description>
 
+    <properties>
+        <revision>0.1.0-SNAPSHOT</revision>
+    </properties>
+
     <modules>
-        <module>00_dependencies</module>
-        <module>01_starter_parent</module>
+        <module>01_pom</module>
         <module>02_basic</module>
         <module>03_web</module>
         <module>04_rest</module>

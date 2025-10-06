@@ -8,8 +8,7 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
 
 - [Project Structure](#project-structure)
 - [Modules Overview](#modules-overview)
-  - [00 dependencies](#00-dependencies)
-  - [01 starter\_parent](#01-starter_parent)
+  - [01 pom](#01-pom)
   - [02 basic](#02-basic)
   - [03 web](#03-web)
   - [04 rest](#04-rest)
@@ -67,9 +66,8 @@ A comprehensive collection of Spring Boot examples demonstrating various aspects
 
 ```none
 spring-examples/
-├── 00_dependencies/     # Custom dependencies BOM (foo-dependencies)
-├── 01_starter_parent/   # Custom starter parent POM (foo-starter-parent)
-├── 02_basic/            # Basic Spring Boot console application
+├── 01_pom/               # Multi-module POM structure (foo-dependencies + foo-starter-parent)
+├── 02_basic/             # Basic Spring Boot console application
 ├── 03_web/              # Spring Boot web application with HTML controller
 ├── 04_rest/             # Spring Boot REST API example
 ├── 05_logging/          # Advanced logging configuration example
@@ -87,24 +85,23 @@ spring-examples/
 
 ## Modules Overview
 
-### 00 dependencies
+### 01 pom
 
-- **Purpose**: Custom dependencies BOM (Bill of Materials)
+- **Purpose**: Multi-module POM structure combining dependency management and build configuration
+- **Structure**:
+  - `foo-dependencies`: Custom dependencies BOM (Bill of Materials)
+  - `foo-starter-parent`: Custom starter parent POM for all modules
 - **Features**:
   - Imports Spring Boot dependencies BOM
   - Manages Maven plugin versions
   - Centralizes dependency version management
   - Provides internal project dependency management
-
-### 01 starter_parent
-
-- **Purpose**: Custom starter parent POM for all modules
-- **Features**:
   - Extends `foo-dependencies` BOM
   - Provides plugin management with Lombok support
   - Centralized Maven compiler settings
   - Spring Boot Maven plugin configuration
   - JDK 17 configuration
+  - CI-friendly versioning with flatten-maven-plugin
 
 ### 02 basic
 
@@ -418,7 +415,7 @@ Each module has its own `application.yml` file:
 
 1. Create module directory with standard Maven structure
 2. Add module to root `pom.xml` `<modules>` section
-3. Add module dependency to `00_dependencies/pom.xml` if needed
+3. Add module dependency to `01_pom/foo-dependencies/pom.xml` if needed
 4. Configure module dependencies in `Makefile` if needed
 5. Add run target to `Makefile`
 6. Update help text
@@ -427,7 +424,7 @@ Each module has its own `application.yml` file:
 ### Module Dependencies
 
 - All modules inherit from `org.foo:foo-starter-parent`
-- Dependencies are managed in `00_dependencies` BOM
+- Dependencies are managed in `01_pom/foo-dependencies` BOM
 - Internal project dependencies are managed in `foo-dependencies`
 - Use `MODULE_DEPS_<module_name>` variables in `Makefile` to define build order
 

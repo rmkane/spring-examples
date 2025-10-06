@@ -4,7 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.foo</groupId>
+    <parent>
+        <groupId>org.foo</groupId>
+        <artifactId>foo-pom</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>foo-dependencies</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -26,19 +32,17 @@
         <!-- Math libraries -->
         <hipparchus.version>4.0.1</hipparchus.version>
 
-        <!-- Maven Plugin Versions (from Spring Boot) -->
-        <exec-maven-plugin.version>3.3.0</exec-maven-plugin.version>
-        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
-        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
-        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-        <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
-        <maven-install-plugin.version>3.1.1</maven-install-plugin.version>
-        <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
-        <maven-clean-plugin.version>3.3.2</maven-clean-plugin.version>
-        <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
-        <spring-boot-maven-plugin.version>3.5.6</spring-boot-maven-plugin.version>
+        <foo-basic.version>0.1.0-SNAPSHOT</foo-basic.version>
+        <foo-web.version>0.1.0-SNAPSHOT</foo-web.version>
+        <foo-rest.version>0.1.0-SNAPSHOT</foo-rest.version>
+        <foo-logging.version>0.1.0-SNAPSHOT</foo-logging.version>
+        <foo-security.version>0.1.0-SNAPSHOT</foo-security.version>
+        <foo-activemq.version>0.1.0-SNAPSHOT</foo-activemq.version>
+        <foo-elasticsearch.version>0.1.0-SNAPSHOT</foo-elasticsearch.version>
+        <foo-websocket.version>0.1.0-SNAPSHOT</foo-websocket.version>
+        <foo-sse.version>0.1.0-SNAPSHOT</foo-sse.version>
+        <foo-scheduling.version>0.1.0-SNAPSHOT</foo-scheduling.version>
+        <foo-libs.version>0.1.0-SNAPSHOT</foo-libs.version>
     </properties>
 
     <dependencyManagement>
@@ -91,58 +95,68 @@
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>basic</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-basic.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>web</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-web.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>rest</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-rest.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>logging</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-logging.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>security</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-security.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>activemq</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-activemq.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>elasticsearch</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-elasticsearch.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>websocket</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-websocket.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>sse</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-sse.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>scheduling</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-scheduling.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.foo</groupId>
                 <artifactId>libs</artifactId>
-                <version>${project.version}</version>
+                <version>${foo-libs.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <inherited>false</inherited>
+            </plugin>
+        </plugins>
+    </build>
 </project>
