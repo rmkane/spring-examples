@@ -20,7 +20,7 @@ get_spring_boot_version() {
     local dependencies_pom="$FOO_DEPENDENCIES_POM"
 
     if [ ! -f "$dependencies_pom" ]; then
-        echo "❌ Error: foo-dependencies/pom.xml not found" >&2
+        echo "❌ Error: $dependencies_pom not found" >&2
         exit 1
     fi
 
@@ -112,7 +112,7 @@ update_plugin_versions_with_lookup() {
     local lookup_file="$1"
 
     if [ ! -f "$starter_parent_pom" ]; then
-        echo "❌ Error: foo-starter-parent/pom.xml not found" >&2
+        echo "❌ Error: $starter_parent_pom not found" >&2
         exit 1
     fi
 
@@ -138,33 +138,27 @@ update_plugin_versions_with_lookup() {
             if echo "$plugin_name" | grep -qE "^(maven|spring)-[a-zA-Z0-9-]+-plugin$"; then
                 # Check if this plugin exists in our lookup table
                 if grep -q "^${plugin_name}=" "$lookup_file"; then
-                    # Special handling for spring-boot-maven-plugin
-                    if [[ "$plugin_name" == "spring-boot-maven-plugin" ]]; then
-                        echo "        <spring-boot-maven-plugin.version>\${spring-boot.version}</spring-boot-maven-plugin.version>" >> "$temp_pom"
-                        echo "  🔄 Updated ${plugin_name}: kept property reference" >&2
-                    else
-                        # Get version from lookup
-                        local new_version
-                        new_version=$(get_version_from_lookup "$lookup_file" "$plugin_name")
-                        if [ -n "$new_version" ]; then
-                            # Extract current version from the line
-                            local current_version
-                            current_version=$(echo "$line" | sed -n 's/.*\.version>\([^<]*\)<.*/\1/p')
+                    # Get version from lookup
+                    local new_version
+                    new_version=$(get_version_from_lookup "$lookup_file" "$plugin_name")
+                    if [ -n "$new_version" ]; then
+                        # Extract current version from the line
+                        local current_version
+                        current_version=$(echo "$line" | sed -n 's/.*\.version>\([^<]*\)<.*/\1/p')
 
-                            # Only update if versions are different
-                            if [[ "$current_version" != "$new_version" ]]; then
-                                echo "        <${plugin_name}.version>${new_version}</${plugin_name}.version>" >> "$temp_pom"
-                                echo "  🔄 Updated ${plugin_name}: ${current_version} → ${new_version}" >&2
-                                updated_count=$((updated_count + 1))
-                            else
-                                echo "$line" >> "$temp_pom"
-                                echo "  ✅ ${plugin_name}: already up-to-date (${current_version})" >&2
-                            fi
+                        # Only update if versions are different
+                        if [[ "$current_version" != "$new_version" ]]; then
+                            echo "        <${plugin_name}.version>${new_version}</${plugin_name}.version>" >> "$temp_pom"
+                            echo "  🔄 Updated ${plugin_name}: ${current_version} → ${new_version}" >&2
+                            updated_count=$((updated_count + 1))
                         else
-                            # Keep original if not found in lookup
                             echo "$line" >> "$temp_pom"
-                            echo "  ⚠️  Keeping original ${plugin_name} (not found in Spring Boot BOM)" >&2
+                            echo "  ✅ ${plugin_name}: already up-to-date (${current_version})" >&2
                         fi
+                    else
+                        # Keep original if not found in lookup
+                        echo "$line" >> "$temp_pom"
+                        echo "  ⚠️  Keeping original ${plugin_name} (not found in Spring Boot BOM)" >&2
                     fi
                 else
                     # Not a plugin found in Spring Boot BOM, keep original
@@ -224,7 +218,7 @@ main() {
     echo "" >&2
     echo "🎉 Plugin version sync completed successfully!" >&2
     echo "💡 Next steps:" >&2
-    echo "  1. Review the changes in foo-starter-parent/pom.xml" >&2
+    echo "  1. Review the changes in $FOO_STARTER_PARENT_POM" >&2
     echo "  2. Test the build: mvn clean compile -pl 01_pom" >&2
     echo "  3. If everything works, remove the backup: rm $FOO_STARTER_PARENT_POM.backup" >&2
     echo "  4. If there are issues, restore: mv $FOO_STARTER_PARENT_POM.backup $FOO_STARTER_PARENT_POM" >&2
